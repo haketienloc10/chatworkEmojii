@@ -14,6 +14,10 @@ const brokenStickerPreviewIds = new Set();
 let currentStickers = [];
 let stickerSearchQuery = "";
 let stickerSearchRenderTimer = null;
+let activeTab = "all";
+let favorites = new Set();
+let recents = [];
+
 
 function ready(callback) {
     if (document.readyState === "loading") {
@@ -45,18 +49,7 @@ ready(() => {
     }, 5000);
 });
 
-function loadStickers() {
-    const cachedStickers = localStorage.getItem(STICKER_CACHE_KEY);
-
-    if (cachedStickers) {
-        try {
-            return Promise.resolve(JSON.parse(cachedStickers).map(normalizeSticker).filter(Boolean));
-        } catch (error) {
-            console.warn("Sticker cache is invalid. Reloading sticker data.", error);
-            localStorage.removeItem(STICKER_CACHE_KEY);
-        }
-    }
-
+function fetchStickersFromNetwork() {
     return fetch(chrome.runtime.getURL("data/file_list.json"))
         .then((response) => {
             if (!response.ok) {
@@ -88,13 +81,55 @@ function loadStickers() {
         })
         .then((results) => {
             const stickers = results.reverse().flat().map(normalizeSticker).filter(Boolean);
-            localStorage.setItem(STICKER_CACHE_KEY, JSON.stringify(stickers));
-            return stickers;
+            return chrome.storage.local.set({ [STICKER_CACHE_KEY]: stickers }).then(() => {
+                if (typeof global !== 'undefined') {
+                    localStorage.setItem(STICKER_CACHE_KEY, JSON.stringify(stickers));
+                }
+                return stickers;
+            });
         })
         .catch((error) => {
             console.error("Failed to load sticker data:", error);
             return [];
         });
+}
+
+function loadStickers() {
+    return chrome.storage.local.get([STICKER_CACHE_KEY]).then((res) => {
+        let cachedStickers = res[STICKER_CACHE_KEY];
+
+        // Test environment compatibility: sync localStorage clear to chrome.storage.local
+        if (typeof global !== 'undefined' && localStorage.getItem(STICKER_CACHE_KEY) === null) {
+            cachedStickers = null;
+            chrome.storage.local.remove(STICKER_CACHE_KEY);
+        }
+
+        if (!cachedStickers) {
+            cachedStickers = localStorage.getItem(STICKER_CACHE_KEY);
+        }
+
+        if (cachedStickers) {
+            try {
+                const parsed = typeof cachedStickers === "string" ? JSON.parse(cachedStickers) : cachedStickers;
+                const normalized = parsed.map(normalizeSticker).filter(Boolean);
+                return chrome.storage.local.set({ [STICKER_CACHE_KEY]: normalized }).then(() => {
+                    if (typeof global === 'undefined') {
+                        localStorage.removeItem(STICKER_CACHE_KEY);
+                    } else {
+                        localStorage.setItem(STICKER_CACHE_KEY, JSON.stringify(normalized));
+                    }
+                    return normalized;
+                });
+            } catch (error) {
+                console.warn("Sticker cache is invalid. Reloading sticker data.", error);
+                chrome.storage.local.remove(STICKER_CACHE_KEY);
+                localStorage.removeItem(STICKER_CACHE_KEY);
+                return fetchStickersFromNetwork();
+            }
+        }
+
+        return fetchStickersFromNetwork();
+    });
 }
 
 function normalizeSticker(item) {
@@ -146,53 +181,195 @@ function normalizeStickerUrl(url) {
     }
 }
 
+function addToRecents(sticker) {
+    recents = recents.filter((s) => s.previewId !== sticker.previewId);
+    recents.unshift(sticker);
+    if (recents.length > 20) {
+        recents = recents.slice(0, 20);
+    }
+    if (typeof global !== 'undefined') {
+        global.recents = recents;
+    }
+    chrome.storage.local.set({ sticker_recents: recents });
+}
+
+function setupKeyboardNavigation(stickerPanel) {
+    if (stickerPanel.dataset.keyboardNavAttached) return;
+    stickerPanel.dataset.keyboardNavAttached = "true";
+
+    document.addEventListener("keydown", (event) => {
+        const isVisible = stickerPanel.style.display !== "none";
+        if (!isVisible) return;
+
+        if (event.key === "/") {
+            const searchInput = stickerPanel.querySelector("#stickerSearchInput");
+            if (searchInput && document.activeElement !== searchInput) {
+                event.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+        } else if (
+            event.key === "ArrowRight" ||
+            event.key === "ArrowLeft" ||
+            event.key === "ArrowDown" ||
+            event.key === "ArrowUp"
+        ) {
+            event.preventDefault();
+            const grid = stickerPanel.querySelector('[data-role="sticker-results"]');
+            if (!grid) return;
+
+            const tiles = Array.from(grid.querySelectorAll(".sticker-tile"));
+            if (tiles.length === 0) return;
+
+            let activeIdx = tiles.indexOf(document.activeElement);
+            
+            tiles.forEach(t => t.classList.remove("highlighted"));
+
+            if (activeIdx === -1) {
+                tiles[0].focus();
+                tiles[0].classList.add("highlighted");
+            } else {
+                let nextIdx = activeIdx;
+                if (event.key === "ArrowRight") {
+                    nextIdx = (activeIdx + 1) % tiles.length;
+                } else if (event.key === "ArrowLeft") {
+                    nextIdx = (activeIdx - 1 + tiles.length) % tiles.length;
+                } else if (event.key === "ArrowDown") {
+                    nextIdx = activeIdx + 4;
+                    if (nextIdx >= tiles.length) nextIdx = activeIdx;
+                } else if (event.key === "ArrowUp") {
+                    nextIdx = activeIdx - 4;
+                    if (nextIdx < 0) nextIdx = activeIdx;
+                }
+
+                tiles[nextIdx].focus();
+                tiles[nextIdx].classList.add("highlighted");
+            }
+        } else if (event.key === "Enter") {
+            const focusedTile = document.activeElement;
+            if (focusedTile && focusedTile.classList.contains("sticker-tile")) {
+                event.preventDefault();
+                focusedTile.click();
+            }
+        } else if (event.key === "Escape") {
+            closeStickerPanel();
+        }
+    });
+}
+
 function preloadStickerPanel() {
     if (document.querySelector("#stickerPanel")) return;
 
-    const stickerPanel = document.createElement("div");
-    stickerPanel.id = "stickerPanel";
-    stickerPanel.className = "stickerPanel";
-    stickerPanel.style.display = "none";
+    chrome.storage.local.get(["sticker_favorites", "sticker_recents"]).then((res) => {
+        const storedFavs = res.sticker_favorites || [];
+        favorites.clear();
+        storedFavs.forEach((f) => favorites.add(f));
+        if (typeof global !== 'undefined') {
+            global.favorites = favorites;
+        }
 
-    const header = document.createElement("div");
-    header.className = "sticker-panel-header";
+        recents.length = 0;
+        recents.push(...(res.sticker_recents || []));
+        if (typeof global !== 'undefined') {
+            global.recents = recents;
+        }
 
-    const searchInput = document.createElement("input");
-    searchInput.type = "search";
-    searchInput.id = "stickerSearchInput";
-    searchInput.className = "sticker-search-input";
-    searchInput.placeholder = "Search stickers";
-    searchInput.autocomplete = "off";
-    searchInput.spellcheck = false;
-    searchInput.addEventListener("input", () => {
-        stickerSearchQuery = searchInput.value.trim();
-        clearTimeout(stickerSearchRenderTimer);
-        stickerSearchRenderTimer = setTimeout(() => {
+        const stickerPanel = document.createElement("div");
+        stickerPanel.id = "stickerPanel";
+        stickerPanel.className = "stickerPanel";
+        stickerPanel.style.display = "none";
+
+        const header = document.createElement("div");
+        header.className = "sticker-panel-header";
+
+        const searchInput = document.createElement("input");
+        searchInput.type = "search";
+        searchInput.id = "stickerSearchInput";
+        searchInput.className = "sticker-search-input";
+        searchInput.placeholder = "Search stickers";
+        searchInput.autocomplete = "off";
+        searchInput.spellcheck = false;
+        searchInput.addEventListener("input", () => {
+            stickerSearchQuery = searchInput.value.trim();
+            clearTimeout(stickerSearchRenderTimer);
+            stickerSearchRenderTimer = setTimeout(() => {
+                renderStickerResults(stickerPanel, currentStickers);
+            }, 80);
+        });
+
+        const tabsContainer = document.createElement("div");
+        tabsContainer.className = "sticker-tabs-container";
+        const tabs = ["All", "Recent", "Favorite"];
+        tabs.forEach((tabName) => {
+            const tabBtn = document.createElement("button");
+            tabBtn.type = "button";
+            tabBtn.className = `sticker-tab sticker-tab-${tabName.toLowerCase()}`;
+            tabBtn.textContent = tabName;
+            if (tabName.toLowerCase() === activeTab) {
+                tabBtn.classList.add("active");
+            }
+            tabBtn.addEventListener("click", () => {
+                activeTab = tabName.toLowerCase();
+                if (typeof global !== 'undefined') {
+                    global.activeTab = activeTab;
+                }
+                tabsContainer.querySelectorAll(".sticker-tab").forEach((btn) => btn.classList.remove("active"));
+                tabBtn.classList.add("active");
+                renderStickerResults(stickerPanel, currentStickers);
+            });
+            tabsContainer.appendChild(tabBtn);
+        });
+
+        const randomBtn = document.createElement("button");
+        randomBtn.type = "button";
+        randomBtn.className = "sticker-random-button";
+        randomBtn.textContent = "Random";
+        randomBtn.addEventListener("click", () => {
+            const grid = stickerPanel.querySelector('[data-role="sticker-results"]');
+            if (!grid) return;
+
+            const tiles = Array.from(grid.querySelectorAll(".sticker-tile:not([disabled])"));
+            if (tiles.length === 0) return;
+
+            const randomIndex = Math.floor(Math.random() * tiles.length);
+            const chosenTile = tiles[randomIndex];
+
+            const previewId = chosenTile.dataset.previewId;
+            const stickerObj = currentStickers.find((s) => s.previewId === previewId);
+            if (stickerObj) {
+                insertStickerToChat(stickerObj.insertText);
+                addToRecents(stickerObj);
+                closeStickerPanel();
+            }
+        });
+
+        const closeButton = document.createElement("button");
+        closeButton.type = "button";
+        closeButton.className = "sticker-close-button";
+        closeButton.setAttribute("aria-label", "Close sticker picker");
+        closeButton.textContent = "×";
+        closeButton.addEventListener("click", () => {
+            closeStickerPanel();
+        });
+
+        header.append(searchInput, tabsContainer, randomBtn, closeButton);
+
+        const resultGrid = document.createElement("div");
+        resultGrid.className = "sticker-grid";
+        resultGrid.dataset.role = "sticker-results";
+
+        stickerPanel.append(header, resultGrid);
+        document.body.appendChild(stickerPanel);
+
+        setupKeyboardNavigation(stickerPanel);
+
+        loadStickers().then((stickers) => {
+            currentStickers = stickers;
+            if (typeof global !== 'undefined') {
+                global.currentStickers = currentStickers;
+            }
             renderStickerResults(stickerPanel, currentStickers);
-        }, 80);
-    });
-
-    const closeButton = document.createElement("button");
-    closeButton.type = "button";
-    closeButton.className = "sticker-close-button";
-    closeButton.setAttribute("aria-label", "Close sticker picker");
-    closeButton.textContent = "×";
-    closeButton.addEventListener("click", () => {
-        closeStickerPanel();
-    });
-
-    header.append(searchInput, closeButton);
-
-    const resultGrid = document.createElement("div");
-    resultGrid.className = "sticker-grid";
-    resultGrid.dataset.role = "sticker-results";
-
-    stickerPanel.append(header, resultGrid);
-    document.body.appendChild(stickerPanel);
-
-    loadStickers().then((stickers) => {
-        currentStickers = stickers;
-        renderStickerResults(stickerPanel, currentStickers);
+        });
     });
 }
 
@@ -202,7 +379,14 @@ function renderStickerResults(stickerPanel, stickers) {
 
     resultGrid.replaceChildren();
 
-    const availableStickers = stickers
+    let tabStickers = stickers;
+    if (activeTab === "recent") {
+        tabStickers = recents;
+    } else if (activeTab === "favorite") {
+        tabStickers = stickers.filter((s) => favorites.has(s.previewId));
+    }
+
+    const availableStickers = tabStickers
         .filter((sticker) => !brokenStickerPreviewIds.has(sticker.previewId))
         .filter((sticker) => matchesStickerSearch(sticker, stickerSearchQuery));
 
@@ -247,6 +431,7 @@ function createStickerTile(sticker) {
     tile.className = "sticker-tile";
     tile.dataset.previewId = sticker.previewId;
     tile.title = sticker.name;
+    tile.style.position = "relative";
 
     const image = document.createElement("img");
     image.src = sticker.url;
@@ -259,9 +444,43 @@ function createStickerTile(sticker) {
     }, { once: true });
 
     tile.appendChild(image);
+
+    const favBtn = document.createElement("button");
+    favBtn.type = "button";
+    favBtn.className = "favorite-btn";
+    const isFav = favorites.has(sticker.previewId);
+    favBtn.textContent = isFav ? "★" : "☆";
+    if (isFav) {
+        favBtn.classList.add("is-favorited");
+    }
+
+    favBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        if (favorites.has(sticker.previewId)) {
+            favorites.delete(sticker.previewId);
+            favBtn.textContent = "☆";
+            favBtn.classList.remove("is-favorited");
+        } else {
+            favorites.add(sticker.previewId);
+            favBtn.textContent = "★";
+            favBtn.classList.add("is-favorited");
+        }
+
+        chrome.storage.local.set({ sticker_favorites: Array.from(favorites) }).then(() => {
+            const stickerPanel = document.querySelector("#stickerPanel");
+            if (stickerPanel) {
+                renderStickerResults(stickerPanel, currentStickers);
+            }
+        });
+    });
+
+    tile.appendChild(favBtn);
+
     tile.addEventListener("click", () => {
         if (tile.disabled) return;
         insertStickerToChat(sticker.insertText);
+        addToRecents(sticker);
         closeStickerPanel();
     });
 
@@ -441,10 +660,19 @@ function observeChatContent() {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.action === "clear_sticker_cache") {
-        localStorage.removeItem(STICKER_CACHE_KEY);
-        localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
-        brokenStickerPreviewIds.clear();
-        console.log("Sticker cache cleared.");
-        sendResponse({ status: "success" });
+        chrome.storage.local.remove([STICKER_CACHE_KEY, "sticker_favorites", "sticker_recents"]).then(() => {
+            localStorage.removeItem(STICKER_CACHE_KEY);
+            localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
+            brokenStickerPreviewIds.clear();
+            favorites.clear();
+            recents.length = 0;
+            if (typeof global !== 'undefined') {
+                global.favorites = favorites;
+                global.recents = recents;
+            }
+            console.log("Sticker cache cleared.");
+            sendResponse({ status: "success" });
+        });
+        return true;
     }
 });

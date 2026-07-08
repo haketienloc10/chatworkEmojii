@@ -133,3 +133,101 @@
     filter: invert(1);
     mix-blend-mode: difference;
 }
+
+.sticker-panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+}
+
+.sticker-tabs-container {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.sticker-tab {
+    flex: 1;
+    height: 28px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #f9fafb;
+    color: #4b5563;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: normal;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.sticker-tab:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.sticker-tab.active {
+    background: #3b82f6;
+    color: white;
+    font-weight: bold;
+    border-color: #3b82f6;
+}
+
+.sticker-random-button {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.sticker-random-button:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.favorite-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 16px;
+    color: #9ca3af;
+    outline: none;
+    transition: color 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.2);
+    color: #eab308;
+}
+
+.favorite-btn.is-favorited {
+    color: #eab308;
+}
+
+.sticker-tile.highlighted {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
