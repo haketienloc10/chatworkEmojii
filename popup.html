@@ -5,29 +5,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sticker Extension</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            padding: 10px;
-            text-align: center;
-            width: 200px;
+            margin: 0;
+            padding: 12px;
+            width: 280px;
+            color: #1f2937;
+            background: #ffffff;
         }
-        button {
+
+        h3 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .stat {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
             padding: 8px;
-            border: none;
-            background: #ff4d4d;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-            width: 100%;
+            min-height: 54px;
+            background: #f9fafb;
         }
+
+        .stat-label {
+            display: block;
+            color: #6b7280;
+            font-size: 11px;
+            line-height: 1.2;
+        }
+
+        .stat-value {
+            display: block;
+            margin-top: 4px;
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .actions {
+            display: grid;
+            gap: 8px;
+        }
+
+        button {
+            min-height: 34px;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #111827;
+            cursor: pointer;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
         button:hover {
-            background: #cc0000;
+            background: #f3f4f6;
+        }
+
+        button.primary {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+
+        button.primary:hover {
+            background: #1d4ed8;
+        }
+
+        button.danger {
+            background: #fee2e2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        button.danger:hover {
+            background: #fecaca;
+        }
+
+        #popupStatus {
+            min-height: 18px;
+            margin: 10px 0 0;
+            color: #4b5563;
+            font-size: 12px;
+            line-height: 1.4;
+            text-align: left;
         }
     </style>
 </head>
 <body>
     <h3>Sticker Extension</h3>
-    <button id="clearStickerCache">🗑️ Xóa Cache Sticker</button>
+    <div class="stats-grid" aria-label="Sticker stats">
+        <div class="stat">
+            <span class="stat-label">Stickers</span>
+            <span class="stat-value" id="stickerCount">-</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Cache</span>
+            <span class="stat-value" id="cacheState">-</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Favorite</span>
+            <span class="stat-value" id="favoriteCount">-</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Recent</span>
+            <span class="stat-value" id="recentCount">-</span>
+        </div>
+    </div>
+    <div class="actions">
+        <button id="reloadStickerData" class="primary" type="button">Reload data</button>
+        <button id="clearStickerCache" class="danger" type="button">Clear sticker cache</button>
+    </div>
+    <p id="popupStatus" role="status">Loading dashboard...</p>
 
     <script src="scripts/popup.js"></script>
 </body>

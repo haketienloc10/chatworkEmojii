@@ -69,6 +69,11 @@ contentScriptCode = contentScriptCode.replace(
 // Evaluate code in global context
 vm.runInThisContext(contentScriptCode);
 
+// 3. Load popup.js so popup dashboard helpers can be tested in the same mock context
+const popupScriptPath = path.resolve(__dirname, '../scripts/popup.js');
+const popupScriptCode = fs.readFileSync(popupScriptPath, 'utf8');
+vm.runInThisContext(popupScriptCode);
+
 // 4. Load suite.js which registers the tests
 require('./suite');
 

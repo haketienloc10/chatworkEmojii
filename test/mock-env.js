@@ -486,6 +486,10 @@ documentMock.createElement = function(tagName) {
   return node;
 };
 
+documentMock.getElementById = function(id) {
+  return this.querySelector(`#${id}`);
+};
+
 const windowListeners = {};
 const windowMock = {
   innerWidth: 1024,
@@ -590,13 +594,21 @@ const chromeMock = {
       return Promise.resolve(mockTabs);
     },
     sendMessage(tabId, message, callback) {
-      let responded = false;
-      const sendResponse = (res) => {
-        if (responded) return;
-        responded = true;
-        if (callback) callback(res);
-      };
-      chromeMock.runtime.onMessage._trigger(message, {}, sendResponse);
+      return new Promise((resolve) => {
+        let responded = false;
+        const sendResponse = (res) => {
+          if (responded) return;
+          responded = true;
+          if (callback) callback(res);
+          resolve(res);
+        };
+        chromeMock.runtime.onMessage._trigger(message, {}, sendResponse);
+        setTimeout(() => {
+          if (!responded) {
+            sendResponse(undefined);
+          }
+        }, 0);
+      });
     }
   }
 };

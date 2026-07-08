@@ -632,6 +632,89 @@ test('Boundary 4: Loading stickers fetch error recovery', async () => {
   assert.deepEqual(stickers, [], "Should fallback to empty array if fetch fails");
 });
 
+// --- FEATURE 5: POPUP DASHBOARD ---
+
+function mountPopupDashboard() {
+  const ids = ["stickerCount", "cacheState", "favoriteCount", "recentCount", "popupStatus"];
+  ids.forEach((id) => {
+    const node = document.createElement(id === "popupStatus" ? "p" : "span");
+    node.id = id;
+    document.body.appendChild(node);
+  });
+}
+
+test('Feature 5: Popup dashboard summarizes storage state', async () => {
+  await chrome.storage.local.set({
+    sticker_cache_v2: [{ previewId: "1" }, { previewId: "2" }],
+    sticker_favorites: ["1"],
+    sticker_recents: [{ previewId: "2" }]
+  });
+
+  const summary = global.summarizeDashboard(await chrome.storage.local.get([
+    "sticker_cache_v2",
+    "sticker_favorites",
+    "sticker_recents"
+  ]));
+
+  assert.deepEqual(summary, {
+    stickerCount: 2,
+    favoriteCount: 1,
+    recentCount: 1,
+    cacheState: "Ready"
+  });
+});
+
+test('Feature 5: Popup dashboard renders counts', async () => {
+  mountPopupDashboard();
+  await chrome.storage.local.set({
+    sticker_cache_v2: [{ previewId: "1" }],
+    sticker_favorites: ["1", "2"],
+    sticker_recents: [{ previewId: "3" }]
+  });
+
+  await global.refreshDashboard();
+
+  assert.equal(document.querySelector("#stickerCount").textContent, "1");
+  assert.equal(document.querySelector("#cacheState").textContent, "Ready");
+  assert.equal(document.querySelector("#favoriteCount").textContent, "2");
+  assert.equal(document.querySelector("#recentCount").textContent, "1");
+});
+
+test('Feature 5: Popup clear cache keeps favorites and recents', async () => {
+  mountPopupDashboard();
+  await openPanel();
+  await chrome.storage.local.set({
+    sticker_favorites: ["fav-1"],
+    sticker_recents: [{ previewId: "recent-1" }]
+  });
+
+  await global.clearStickerCacheFromPopup();
+  const storage = await chrome.storage.local.get([
+    "sticker_cache_v2",
+    "sticker_favorites",
+    "sticker_recents"
+  ]);
+
+  assert.equal(storage.sticker_cache_v2, undefined, "Sticker cache should be removed");
+  assert.deepEqual(storage.sticker_favorites, ["fav-1"], "Favorites should remain");
+  assert.deepEqual(storage.sticker_recents, [{ previewId: "recent-1" }], "Recents should remain");
+  assert.equal(document.querySelector("#cacheState").textContent, "Empty");
+});
+
+test('Feature 5: Popup reload data refreshes sticker cache count', async () => {
+  mountPopupDashboard();
+  await openPanel();
+  await chrome.storage.local.remove("sticker_cache_v2");
+
+  await global.reloadStickerDataFromPopup();
+  const storage = await chrome.storage.local.get("sticker_cache_v2");
+
+  assert.ok(Array.isArray(storage.sticker_cache_v2), "Reload should store sticker cache");
+  assert.ok(storage.sticker_cache_v2.length > 0, "Reload should load sticker data");
+  assert.equal(document.querySelector("#stickerCount").textContent, String(storage.sticker_cache_v2.length));
+  assert.ok(document.querySelector("#popupStatus").textContent.includes("Sticker data reloaded"));
+});
+
 // ==========================================
 // TIER 3: CROSS-FEATURE COMBINATIONS
 // ==========================================

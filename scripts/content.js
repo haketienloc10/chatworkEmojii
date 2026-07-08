@@ -660,18 +660,34 @@ function observeChatContent() {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.action === "clear_sticker_cache") {
-        chrome.storage.local.remove([STICKER_CACHE_KEY, "sticker_favorites", "sticker_recents"]).then(() => {
+        chrome.storage.local.remove(STICKER_CACHE_KEY).then(() => {
             localStorage.removeItem(STICKER_CACHE_KEY);
             localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
             brokenStickerPreviewIds.clear();
-            favorites.clear();
-            recents.length = 0;
-            if (typeof global !== 'undefined') {
-                global.favorites = favorites;
-                global.recents = recents;
-            }
             console.log("Sticker cache cleared.");
             sendResponse({ status: "success" });
+        });
+        return true;
+    }
+
+    if (message.action === "reload_sticker_data") {
+        chrome.storage.local.remove(STICKER_CACHE_KEY).then(() => {
+            localStorage.removeItem(STICKER_CACHE_KEY);
+            localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
+            brokenStickerPreviewIds.clear();
+            return fetchStickersFromNetwork();
+        }).then((stickers) => {
+            currentStickers = stickers;
+            if (typeof global !== 'undefined') {
+                global.currentStickers = currentStickers;
+            }
+
+            const stickerPanel = document.querySelector("#stickerPanel");
+            if (stickerPanel) {
+                renderStickerResults(stickerPanel, currentStickers);
+            }
+
+            sendResponse({ status: "success", count: stickers.length });
         });
         return true;
     }

@@ -38,12 +38,22 @@ The default target is `../chatworkEmojii-v2`. To sync elsewhere:
 bash scripts/sync-extension.sh /path/to/extension-folder
 ```
 
-## Clear Sticker Cache
+## Popup Dashboard
 
-Use the extension popup and click `Xoa Cache Sticker`.
+Use the extension popup to check current sticker state:
 
-The content script stores loaded sticker data in page `localStorage` under
-`sticker_cache_v2`. Clear the cache after changing files in `data/`.
+- `Stickers`: cached sticker records loaded from `data/`.
+- `Cache`: whether sticker metadata is currently cached.
+- `Favorite`: saved favorite stickers.
+- `Recent`: recently inserted stickers.
+
+Click `Reload data` after changing files in `data/` while Chatwork is open.
+Click `Clear sticker cache` to remove cached sticker metadata and broken-image
+runtime state. Favorites and recents are kept.
+
+The content script stores loaded sticker data in `chrome.storage.local` under
+`sticker_cache_v2`. Favorites and recents are also stored in
+`chrome.storage.local`.
 
 ## Validate Data
 
