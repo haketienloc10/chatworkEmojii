@@ -1,0 +1,39 @@
+# Harness manifest - sinh tự động bởi install.sh, KHÔNG sửa tay.
+# Sự hiện diện của file này = repo CÀI Harness (không phải repo nguồn).
+source = haketienloc10/harness-engineering
+ref = main
+
+[files]
+.editorconfig
+.prettierignore
+.prettierrc
+_harness/ARCHITECTURE.md
+_harness/CONTEXT_RULES.md
+_harness/FEATURE_INTAKE.md
+_harness/HARNESS.md
+_harness/HARNESS_AUDIT.md
+_harness/HARNESS_COMPONENTS.md
+_harness/HARNESS_MATURITY.md
+_harness/IMPROVEMENT_PROTOCOL.md
+_harness/README.md
+_harness/TEST_MATRIX.md
+_harness/TOOL_REGISTRY.md
+_harness/TRACE_SPEC.md
+_harness/bin/harness-cli
+_harness/bin/harness-cli.ps1
+_harness/scripts/schema/001-init.sql
+_harness/scripts/schema/002-story-verify.sql
+_harness/scripts/schema/003-tool-registry.sql
+_harness/scripts/schema/004-intervention.sql
+_harness/scripts/schema/005-tool-extensions.sql
+_harness/templates/decision.md
+_harness/templates/high-risk-story/design.md
+_harness/templates/high-risk-story/execplan.md
+_harness/templates/high-risk-story/overview.md
+_harness/templates/high-risk-story/validation.md
+_harness/templates/spec-intake.md
+_harness/templates/story.md
+_harness/templates/validation-report.md
+docs/decisions/README.md
+docs/product/README.md
+docs/stories/README.md

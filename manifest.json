@@ -1,0 +1,45 @@
+{
+    "manifest_version": 3,
+    "name": "LocDT",
+    "version": "1.0.0",
+    "description": "Thêm sticker tùy chỉnh vào Chatwork",
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "*://www.chatwork.com/*"
+    ],
+    "icons": {
+        "16": "icons/logo.png",
+        "48": "icons/logo.png",
+        "128": "icons/logo.png"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/logo.png",
+            "48": "icons/logo.png",
+            "128": "icons/logo.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": ["*://www.chatwork.com/*"],
+            "js": ["scripts/jquery-3.7.1.min.js", "scripts/content.js"],
+            "css": ["styles.css"],
+            "all_frames": true
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["data/*.json", "icons/*.png", "icons/*.svg"],
+            "matches": ["*://www.chatwork.com/*"]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}
+
