@@ -1,0 +1,68 @@
+# US-002 Popover Search Sticker Picker
+
+## Status
+
+implemented
+
+## Lane
+
+normal
+
+## Product Contract
+
+Phase 2 slice of `docs/product/extension-roadmap.md`: the Chatwork sticker picker
+must feel anchored to the chat toolbar and let users quickly search existing
+stickers without covering the main chat history like a centered modal.
+
+## Relevant Product Docs
+
+- `docs/product/extension-roadmap.md`
+
+## Acceptance Criteria
+
+- Picker opens as a popover positioned near the sticker toolbar button and
+  stays inside the viewport.
+- Picker includes a search input that filters by `name`, `tags`, `pack`,
+  `previewId`, and `source`.
+- Search empty state is clear and does not expose preview markup or raw alt text.
+- `Esc` closes the picker and outside click still closes it.
+- Sticker insertion still appends the selected preview markup to Chatwork input.
+- Existing broken-image placeholder behavior remains intact.
+
+## Design Notes
+
+- UI surface: Chrome MV3 content script on `www.chatwork.com`.
+- Data source: normalized sticker records already produced by US-001.
+- Persistence: none in this slice; favorites/recent remain future Phase 2 work.
+
+## Validation
+
+When updating durable proof status, use numeric booleans:
+`_harness/bin/harness-cli story update --id US-002-popover-search-picker --unit 1 --integration 1 --e2e 0 --platform 0`.
+
+| Layer       | Expected proof |
+| ----------- | -------------- |
+| Unit        | `npm run validate:data` |
+| Integration | `npm run validate` |
+| E2E         | Manual Chatwork smoke test through Chrome DevTools when available |
+| Platform    | Manual load-unpacked reload smoke test when available |
+| Release     | Not required |
+
+## Harness Delta
+
+None expected.
+
+## Evidence
+
+- `npm run validate` passed.
+- `npm run validate:data` reported 157 sticker items across 6 files and 1
+  suspicious external URL warning in `data/20241212.json[1]`.
+- Chrome CDP was available at `127.0.0.1:9222`; extension reload on
+  `chrome://extensions` clicked the `LocDT` reload button.
+- Chatwork CDP smoke could not validate this new bundle because the unpacked
+  extension is currently loaded from `/home/locdt/chatworkEmojii-v2`, and
+  syncing there from this sandbox failed with `Read-only file system`.
+- Local-source CDP injection smoke on the Chatwork tab passed: 157 tiles, 72
+  placeholders, 0 preview leaks, search narrowed `2034466880` to 1 result,
+  no-match empty state rendered, insert appended `[preview id=2034466880
+  ht=150]`, and `Esc` closed the picker.

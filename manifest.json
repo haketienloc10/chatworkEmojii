@@ -27,7 +27,7 @@
     "content_scripts": [
         {
             "matches": ["*://www.chatwork.com/*"],
-            "js": ["scripts/jquery-3.7.1.min.js", "scripts/content.js"],
+            "js": ["scripts/content.js"],
             "css": ["styles.css"],
             "all_frames": true
         }

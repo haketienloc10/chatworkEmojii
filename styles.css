@@ -1,31 +1,122 @@
 #stickerPanel {
+    box-sizing: border-box;
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 400px;
-    max-height: 400px;
-    overflow-y: auto;
+    top: 0;
+    left: 0;
+    transform: none;
+    width: 420px;
+    max-height: 420px;
+    overflow: hidden;
     background: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #d1d5db;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
     border-radius: 8px;
-    padding: 10px;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
+    padding: 8px;
     z-index: 10000;
+    flex-direction: column;
+}
+
+.sticker-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+}
+
+.sticker-search-input {
+    flex: 1;
+    min-width: 0;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0 10px;
+    color: #111827;
+    font-size: 13px;
+    outline: none;
+}
+
+.sticker-search-input:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.16);
+}
+
+.sticker-close-button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #374151;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.sticker-close-button:hover {
+    background: #e5e7eb;
+}
+
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 2px;
+}
+
+.sticker-tile {
+    width: 56px;
+    height: 56px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 3px;
+}
+
+.sticker-tile:hover {
+    border-color: #9ca3af;
+    background: #ffffff;
+}
+
+.sticker-tile:disabled {
+    cursor: default;
+    background: #f3f4f6;
+    color: #6b7280;
 }
 
 .sticker-img {
     width: 48px;
     height: 48px;
+    object-fit: contain;
     cursor: pointer;
     transition: transform 0.2s;
 }
 
 .sticker-img:hover {
     transform: scale(1.4);
+}
+
+.sticker-placeholder {
+    font-size: 11px;
+    line-height: 1.2;
+    text-align: center;
+    color: #6b7280;
+    overflow-wrap: anywhere;
+}
+
+.sticker-empty {
+    grid-column: 1 / -1;
+    color: #6b7280;
+    font-size: 13px;
+    margin: 8px;
+    text-align: center;
 }
 
 #_sticker {
