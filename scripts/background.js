@@ -2,24 +2,20 @@ const CHATWORK_UPLOAD_CONFIG_KEY = "chatwork_upload_config_v1";
 const CHATWORK_UPLOAD_URL_PATTERN = "*://www.chatwork.com/gateway/*";
 const CHATWORK_DEFAULT_UPLOAD_URL = "https://www.chatwork.com/gateway/upload_file.php";
 
-function isLikelyUploadRequest(details) {
+function isDirectUploadRequest(details) {
     if (!details || details.method !== "POST" || typeof details.url !== "string") {
         return false;
     }
 
-    let lowerPath = "";
     try {
-        lowerPath = new URL(details.url).pathname.toLowerCase();
+        return new URL(details.url).pathname.toLowerCase() === "/gateway/upload_file.php";
     } catch (_error) {
-        lowerPath = details.url.toLowerCase().split("?")[0];
+        return details.url.toLowerCase().split("?")[0].endsWith("/gateway/upload_file.php");
     }
+}
 
-    if (lowerPath.includes("upload") || lowerPath.includes("file")) {
-        return true;
-    }
-
-    const formData = details.requestBody && details.requestBody.formData;
-    return !!(formData && Object.keys(formData).some((key) => /file|upload|attachment/i.test(key)));
+function isValidDirectUploadUrl(url) {
+    return isDirectUploadRequest({ method: "POST", url });
 }
 
 function firstValue(values) {
@@ -75,12 +71,15 @@ function storeObservedToken(token) {
 
     chrome.storage.local.get(CHATWORK_UPLOAD_CONFIG_KEY).then((res) => {
         const current = res[CHATWORK_UPLOAD_CONFIG_KEY] || {};
-        const fields = current.fields && typeof current.fields === "object" ? current.fields : {};
+        const isValidCurrent = isValidDirectUploadUrl(current.url);
+        const fields = isValidCurrent && current.fields && typeof current.fields === "object"
+            ? current.fields
+            : {};
         storeUploadConfig({
-            url: current.url || CHATWORK_DEFAULT_UPLOAD_URL,
-            method: current.method || "POST",
+            url: isValidCurrent ? current.url : CHATWORK_DEFAULT_UPLOAD_URL,
+            method: isValidCurrent && current.method ? current.method : "POST",
             fields: { ...fields, _t: token },
-            fileField: current.fileField || "file",
+            fileField: isValidCurrent && current.fileField ? current.fileField : "file",
             observedAt: new Date().toISOString(),
         });
     });
@@ -89,7 +88,7 @@ function storeObservedToken(token) {
 if (chrome.webRequest && chrome.webRequest.onBeforeRequest) {
     chrome.webRequest.onBeforeRequest.addListener((details) => {
         const token = extractChatworkToken(details);
-        if (!isLikelyUploadRequest(details)) {
+        if (!isDirectUploadRequest(details)) {
             storeObservedToken(token);
             return;
         }

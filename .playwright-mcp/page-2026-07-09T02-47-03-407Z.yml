@@ -1,0 +1,40 @@
+- generic [active] [ref=f1e1]:
+  - heading "Sticker Extension" [level=3] [ref=f1e2]
+  - generic "Sticker stats" [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]: Stickers
+      - generic [ref=f1e6]: "159"
+    - generic [ref=f1e7]:
+      - generic [ref=f1e8]: Cache
+      - generic [ref=f1e9]: Ready
+    - generic [ref=f1e10]:
+      - generic [ref=f1e11]: Favorite
+      - generic [ref=f1e12]: "1"
+    - generic [ref=f1e13]:
+      - generic [ref=f1e14]: Recent
+      - generic [ref=f1e15]: "4"
+    - generic [ref=f1e16]:
+      - generic [ref=f1e17]: Imported
+      - generic [ref=f1e18]: "1"
+  - generic [ref=f1e19]:
+    - button "Reload data" [ref=f1e20] [cursor=pointer]
+    - button "Clear sticker cache" [ref=f1e21] [cursor=pointer]
+  - generic "Upload sticker" [ref=f1e22]:
+    - generic [ref=f1e23]:
+      - generic [ref=f1e24]: Image file
+      - button "Image file" [ref=f1e25]
+    - generic [ref=f1e26]:
+      - generic [ref=f1e27]: Name
+      - textbox "Name" [ref=f1e28]:
+        - /placeholder: Uploaded sticker
+    - generic [ref=f1e29]:
+      - generic [ref=f1e30]: Tags
+      - textbox "Tags" [ref=f1e31]:
+        - /placeholder: tag1, tag2
+    - generic [ref=f1e32]:
+      - generic [ref=f1e33]: Pack
+      - textbox "Pack" [ref=f1e34]:
+        - /placeholder: upload-20260708
+        - text: upload-20260709
+    - button "Upload sticker" [ref=f1e35] [cursor=pointer]
+  - status [ref=f1e36]: Select an image and upload it through the active Chatwork tab.

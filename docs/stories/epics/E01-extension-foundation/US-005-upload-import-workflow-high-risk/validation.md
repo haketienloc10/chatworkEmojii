@@ -26,6 +26,9 @@ image from the popup in a real room.
   containing `file_id=5550002223`, storage POST returns `204`, and
   `upload_file_finish.php` returns success.
 - Mock image data URL: `data:image/gif;base64,R0lGODlhAQABAAAAACw=`.
+- Stale-config fixture:
+  `gateway/get_room_info.php?load_file_version=2`; expected recovery endpoint:
+  `gateway/upload_file.php`.
 
 ## Commands
 
@@ -48,3 +51,8 @@ _harness/bin/harness-cli story verify US-005-upload-import-workflow
   upload path with load-unpacked extension `legdabcfeojbmgpjijbelafcdacgnhin`;
   live picker visual proof was noisy because an older extension copy was also
   installed in the same Chrome profile.
+- 2026-07-09: `npm run test` passed 62/62 after adding stale endpoint recovery
+  coverage, and `npm run validate` passed. The synced load-unpacked extension
+  uploaded `icons/logo.png` through the signed Chatwork flow as
+  `file_id=2105468742`; storage, cache, picker search, and insertion were all
+  verified in the live Chrome session.

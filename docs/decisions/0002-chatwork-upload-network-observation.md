@@ -21,6 +21,12 @@ and gateway token in `chrome.storage.local`. The popup sends a user-selected
 file to the active Chatwork content script, which uploads with the active
 session, parses `file_id`, and stores imported sticker metadata.
 
+Only `gateway/upload_file.php` is persisted as a direct upload template.
+Ordinary gateway requests may refresh the `_t` token, but must not replace the
+upload URL or form fields. Stored templates are validated again by the content
+script and invalid or stale URLs fall back to `gateway/upload_file.php` while
+retaining a valid observed `_t` token.
+
 As of the 2026-07-08 live Chrome smoke, Chatwork uses a signed storage upload
 flow instead of returning `file_id` from `gateway/upload_file.php` directly:
 
@@ -58,6 +64,8 @@ Tradeoffs:
 - Requires `webRequest` permission.
 - Live Chatwork proof is still required to confirm the provider accepts the
   reconstructed request.
+- Upload endpoint recognition is intentionally strict so query parameters such
+  as `load_file_version` cannot misclassify room-info requests as uploads.
 
 ## Follow-Up
 

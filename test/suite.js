@@ -900,6 +900,15 @@ test('Feature 6: Popup upload uses Chatwork signed storage flow when token is ob
 });
 
 test('Feature 6: Background observer ignores non-upload file query requests', async () => {
+  await chrome.storage.local.set({
+    chatwork_upload_config_v1: {
+      url: "https://www.chatwork.com/gateway/get_room_info.php?load_file_version=2",
+      method: "POST",
+      fields: {},
+      fileField: "file"
+    }
+  });
+
   chrome.webRequest.onBeforeRequest._trigger({
     method: "POST",
     url: "https://www.chatwork.com/gateway/get_room_info.php?load_file_version=2",
@@ -932,6 +941,45 @@ test('Feature 6: Background observer ignores non-upload file query requests', as
   assert.equal(storage.chatwork_upload_config_v1.url, "https://www.chatwork.com/gateway/upload_file.php?preview=1");
   assert.equal(storage.chatwork_upload_config_v1.fileField, "upload_file");
   assert.equal(storage.chatwork_upload_config_v1.fields.token, "network-token");
+});
+
+test('Feature 6: Upload sanitizes an invalid observed endpoint before direct fallback', async () => {
+  mountPopupDashboard();
+  await openPanel();
+  await chrome.storage.local.set({
+    chatwork_upload_config_v1: {
+      url: "https://www.chatwork.com/gateway/get_room_info.php?load_file_version=2",
+      method: "POST",
+      fields: {},
+      fileField: "file"
+    }
+  });
+
+  const originalFetch = global.fetch;
+  global.fetch = (url, options) => {
+    if (String(url).startsWith("chrome-extension://")) {
+      return originalFetch(url, options);
+    }
+
+    assert.equal(url, "https://www.chatwork.com/gateway/upload_file.php");
+    assert.equal(options.method, "POST");
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: () => Promise.resolve('{"file_id":"9876543211"}')
+    });
+  };
+
+  const result = await global.uploadStickerFilePayloadFromPopup({
+    name: "stale-config.gif",
+    type: "image/gif",
+    dataUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACw="
+  });
+  global.fetch = originalFetch;
+
+  assert.ok(result.ok, "Invalid observed endpoint should fall back to direct upload");
+  assert.equal(result.sticker.previewId, "9876543211");
 });
 
 test('Feature 6: Upload import rejects duplicate uploaded sticker', async () => {

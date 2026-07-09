@@ -23,6 +23,9 @@ manual upload-plus-JSON/script edits.
 
 - Background network observer records the current Chatwork upload request
   template from `chrome.webRequest`.
+- Non-upload gateway requests may refresh the gateway token but cannot replace
+  the stored direct upload endpoint; stale invalid configs recover to
+  `gateway/upload_file.php`.
 - Popup exposes a file picker and upload action for the active Chatwork tab.
 - Content script uploads the selected file to Chatwork using the active session
   and learned/default upload request template.
@@ -88,3 +91,9 @@ None planned.
   was not clean because the older extension `bjejgmomdmkepfnhbahogpbffpphehlf`
   was still installed in the same Chrome profile and owned the existing
   `#_sticker` UI.
+- 2026-07-09 regression fix: `npm run test` passed 62/62, including recovery
+  from a stale `get_room_info.php?load_file_version=2` upload config; `npm run
+  validate` passed. After syncing `/home/locdt/chatworkEmojii-v2`, live Chrome
+  upload succeeded through the signed flow with `file_id=2105468742`; Imported
+  became 1, cache became 159, picker search returned exactly that sticker, and
+  insertion produced `[preview id=2105468742 ht=150]`.

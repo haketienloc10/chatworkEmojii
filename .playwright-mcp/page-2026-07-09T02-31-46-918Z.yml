@@ -1,0 +1,1066 @@
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - heading "Chatwork" [level=1] [ref=e7]:
+      - img "Chatwork" [ref=e8]
+    - generic [ref=e12]:
+      - generic [ref=e14]:
+        - img
+      - search "Type to search for chat/message" [ref=e15]
+    - generic [ref=e16]:
+      - navigation [ref=e17]:
+        - listitem [ref=e18]:
+          - button "Tasks" [ref=e19] [cursor=pointer]:
+            - img
+        - listitem [ref=e20]:
+          - button "Files" [ref=e21] [cursor=pointer]:
+            - img
+        - listitem [ref=e22]:
+          - button "Contacts" [ref=e23] [cursor=pointer]:
+            - img
+      - button "Information" [ref=e27] [cursor=pointer]:
+        - img
+      - generic [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]: Duong Tien Loc
+        - generic [ref=e31]:
+          - img
+  - generic [ref=e32]:
+    - generic [ref=e33]:
+      - generic [ref=e35]:
+        - button "Show Chat List" [ref=e36] [cursor=pointer]:
+          - generic [ref=e37]:
+            - img
+          - generic [ref=e38]: Chat
+        - button "Show Mentions" [ref=e39] [cursor=pointer]:
+          - generic [ref=e40]:
+            - img
+          - generic [ref=e41]: Mentions
+        - button "Show Bookmark List" [ref=e42] [cursor=pointer]:
+          - generic [ref=e43]:
+            - img
+          - generic [ref=e44]: Bookmark
+      - generic [ref=e45]:
+        - generic [ref=e47]:
+          - button "Open My Chat" [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]:
+              - img
+          - generic [ref=e53] [cursor=pointer]:
+            - generic [ref=e54]: All
+            - generic [ref=e56]:
+              - img
+          - generic "Create a new Group Chat,Add Contacts,Create a new Category" [ref=e57]:
+            - button [ref=e58] [cursor=pointer]:
+              - generic [ref=e59]:
+                - img
+        - tablist [ref=e62]:
+          - tab "AT SGN - Leave Report Group for Developers" [ref=e63] [cursor=pointer]:
+            - generic [ref=e64]:
+              - img [ref=e66]
+              - paragraph [ref=e69]: AT SGN - Leave Report Group for Developers
+            - generic "Pin this chat" [ref=e70]:
+              - generic [ref=e72]:
+                - img
+          - tab "My Chat" [selected] [ref=e73] [cursor=pointer]:
+            - generic [ref=e74]:
+              - img [ref=e76]
+              - paragraph [ref=e79]: My Chat
+            - generic "Pin this chat" [ref=e80]:
+              - generic [ref=e82]:
+                - img
+          - tab "AT SGN - Members" [ref=e83] [cursor=pointer]:
+            - generic [ref=e84]:
+              - img [ref=e86]
+              - paragraph [ref=e89]: AT SGN - Members
+            - generic "Pin this chat" [ref=e90]:
+              - generic [ref=e92]:
+                - img
+          - tab "Lunch @ office group" [ref=e93] [cursor=pointer]:
+            - generic [ref=e94]:
+              - img [ref=e96]
+              - paragraph [ref=e99]: Lunch @ office group
+            - generic "Pin this chat" [ref=e100]:
+              - generic [ref=e102]:
+                - img
+          - tab "CVR Dev" [ref=e103] [cursor=pointer]:
+            - generic [ref=e104]:
+              - img [ref=e106]
+              - paragraph [ref=e109]: CVR Dev
+            - generic "Pin this chat" [ref=e110]:
+              - generic [ref=e112]:
+                - img
+          - tab "AT SGN - DomTour - CVR" [ref=e113] [cursor=pointer]:
+            - generic [ref=e114]:
+              - img [ref=e116]
+              - paragraph [ref=e119]: AT SGN - DomTour - CVR
+            - generic "Pin this chat" [ref=e120]:
+              - generic [ref=e122]:
+                - img
+          - tab "AT SGN - CVR improvement (Abroad)" [ref=e123] [cursor=pointer]:
+            - generic [ref=e124]:
+              - img [ref=e126]
+              - paragraph [ref=e129]: AT SGN - CVR improvement (Abroad)
+            - generic "Pin this chat" [ref=e130]:
+              - generic [ref=e132]:
+                - img
+          - tab "AT SGN - Env" [ref=e133] [cursor=pointer]:
+            - generic [ref=e134]:
+              - img [ref=e136]
+              - paragraph [ref=e139]: AT SGN - Env
+            - generic "Pin this chat" [ref=e140]:
+              - generic [ref=e142]:
+                - img
+          - tab "Trà sữa đâyyyyy -> Tỉ lệ tiểu ĐƯỜNG cao !" [ref=e143] [cursor=pointer]:
+            - generic [ref=e144]:
+              - img [ref=e146]
+              - paragraph [ref=e149]: Trà sữa đâyyyyy -> Tỉ lệ tiểu ĐƯỜNG cao !
+            - generic "Pin this chat" [ref=e150]:
+              - generic [ref=e152]:
+                - img
+          - tab "Nguyen Thi Hong Hanh (►__◄)" [ref=e153] [cursor=pointer]:
+            - generic [ref=e154]:
+              - img [ref=e156]
+              - paragraph [ref=e159]: Nguyen Thi Hong Hanh (►__◄)
+            - generic "Pin this chat" [ref=e160]:
+              - generic [ref=e162]:
+                - img
+          - tab "AT SGN - LCC" [ref=e163] [cursor=pointer]:
+            - generic [ref=e164]:
+              - img [ref=e166]
+              - paragraph [ref=e169]: AT SGN - LCC
+            - generic "Pin this chat" [ref=e170]:
+              - generic [ref=e172]:
+                - img
+          - tab "Hoang Lu Nhu Quynh" [ref=e173] [cursor=pointer]:
+            - generic [ref=e174]:
+              - img [ref=e176]
+              - paragraph [ref=e179]: Hoang Lu Nhu Quynh
+            - generic "Pin this chat" [ref=e180]:
+              - generic [ref=e182]:
+                - img
+          - tab "HCM_Trinh Thi Thanh Xuan" [ref=e183] [cursor=pointer]:
+            - generic [ref=e184]:
+              - img [ref=e186]
+              - paragraph [ref=e189]: HCM_Trinh Thi Thanh Xuan
+            - generic "Pin this chat" [ref=e190]:
+              - generic [ref=e192]:
+                - img
+          - tab "HCM - HTV NOTICE BOARD" [ref=e193] [cursor=pointer]:
+            - generic [ref=e194]:
+              - img [ref=e196]
+              - paragraph [ref=e199]: HCM - HTV NOTICE BOARD
+            - generic "Pin this chat" [ref=e200]:
+              - generic [ref=e202]:
+                - img
+          - tab "HTV-HCM" [ref=e203] [cursor=pointer]:
+            - generic [ref=e204]:
+              - img [ref=e206]
+              - paragraph [ref=e209]: HTV-HCM
+            - generic "Pin this chat" [ref=e210]:
+              - generic [ref=e212]:
+                - img
+          - tab "AT SGN - Interline" [ref=e213] [cursor=pointer]:
+            - generic [ref=e214]:
+              - img [ref=e216]
+              - paragraph [ref=e219]: AT SGN - Interline
+            - generic "Pin this chat" [ref=e220]:
+              - generic [ref=e222]:
+                - img
+          - 'tab "Hoang Thi Diem Phuc (WT: 7h30 ~ 16h30)" [ref=e223] [cursor=pointer]':
+            - generic [ref=e224]:
+              - img [ref=e226]
+              - paragraph [ref=e229]: "Hoang Thi Diem Phuc (WT: 7h30 ~ 16h30)"
+            - generic "Pin this chat" [ref=e230]:
+              - generic [ref=e232]:
+                - img
+          - tab "Nguyen Trong Khanh" [ref=e233] [cursor=pointer]:
+            - generic [ref=e234]:
+              - img [ref=e236]
+              - paragraph [ref=e239]: Nguyen Trong Khanh
+            - generic "Pin this chat" [ref=e240]:
+              - generic [ref=e242]:
+                - img
+          - tab "Nguyen Thi Hoang Oanh" [ref=e243] [cursor=pointer]:
+            - generic [ref=e244]:
+              - img [ref=e246]
+              - paragraph [ref=e249]: Nguyen Thi Hoang Oanh
+            - generic "Pin this chat" [ref=e250]:
+              - generic [ref=e252]:
+                - img
+          - tab "Nguyen Hoai Phuong" [ref=e253] [cursor=pointer]:
+            - generic [ref=e254]:
+              - img [ref=e256]
+              - paragraph [ref=e259]: Nguyen Hoai Phuong
+            - generic "Pin this chat" [ref=e260]:
+              - generic [ref=e262]:
+                - img
+          - tab "Mai Tran Xuan Hong" [ref=e263] [cursor=pointer]:
+            - generic [ref=e264]:
+              - img [ref=e266]
+              - paragraph [ref=e269]: Mai Tran Xuan Hong
+            - generic "Pin this chat" [ref=e270]:
+              - generic [ref=e272]:
+                - img
+          - tab "No Work" [ref=e273] [cursor=pointer]:
+            - generic [ref=e274]:
+              - img [ref=e276]
+              - paragraph [ref=e279]: No Work
+            - generic "Pin this chat" [ref=e280]:
+              - generic [ref=e282]:
+                - img
+          - tab "Nguyen Trinh Thu Hien" [ref=e283] [cursor=pointer]:
+            - generic [ref=e284]:
+              - img [ref=e286]
+              - paragraph [ref=e289]: Nguyen Trinh Thu Hien
+            - generic "Pin this chat" [ref=e290]:
+              - generic [ref=e292]:
+                - img
+          - 'tab "Phan Minh Tien (WT: 7h30 ~ 16h30)" [ref=e293] [cursor=pointer]':
+            - generic [ref=e294]:
+              - img [ref=e296]
+              - paragraph [ref=e299]: "Phan Minh Tien (WT: 7h30 ~ 16h30)"
+            - generic "Pin this chat" [ref=e300]:
+              - generic [ref=e302]:
+                - img
+          - tab "HCM_Vo Khac Duy" [ref=e303] [cursor=pointer]:
+            - generic [ref=e304]:
+              - img [ref=e306]
+              - paragraph [ref=e309]: HCM_Vo Khac Duy
+            - generic "Pin this chat" [ref=e310]:
+              - generic [ref=e312]:
+                - img
+          - tab "Doan Thanh Sang" [ref=e313] [cursor=pointer]:
+            - generic [ref=e314]:
+              - img [ref=e316]
+              - paragraph [ref=e319]: Doan Thanh Sang
+            - generic "Pin this chat" [ref=e320]:
+              - generic [ref=e322]:
+                - img
+          - 'tab "Do Thai An (WT: 7h30 ~ 16h30)" [ref=e323] [cursor=pointer]':
+            - generic [ref=e324]:
+              - img [ref=e326]
+              - paragraph [ref=e329]: "Do Thai An (WT: 7h30 ~ 16h30)"
+            - generic "Pin this chat" [ref=e330]:
+              - generic [ref=e332]:
+                - img
+          - tab "Nguyen Thi Thanh Truc" [ref=e333] [cursor=pointer]:
+            - generic [ref=e334]:
+              - img [ref=e336]
+              - paragraph [ref=e339]: Nguyen Thi Thanh Truc
+            - generic "Pin this chat" [ref=e340]:
+              - generic [ref=e342]:
+                - img
+          - tab "Nguyen Trung Nam" [ref=e343] [cursor=pointer]:
+            - generic [ref=e344]:
+              - img [ref=e346]
+              - paragraph [ref=e349]: Nguyen Trung Nam
+            - generic "Pin this chat" [ref=e350]:
+              - generic [ref=e352]:
+                - img
+          - tab "HCM_Nguyen Xuan Hoang" [ref=e353] [cursor=pointer]:
+            - generic [ref=e354]:
+              - img [ref=e356]
+              - paragraph [ref=e359]: HCM_Nguyen Xuan Hoang
+            - generic "Pin this chat" [ref=e360]:
+              - generic [ref=e362]:
+                - img
+          - 'tab "Nguyen Van Toanh (WT: 8:30 ~ 17:30)" [ref=e363] [cursor=pointer]':
+            - generic [ref=e364]:
+              - img [ref=e366]
+              - paragraph [ref=e369]: "Nguyen Van Toanh (WT: 8:30 ~ 17:30)"
+            - generic "Pin this chat" [ref=e370]:
+              - generic [ref=e372]:
+                - img
+          - tab "AT SGN - AI Team" [ref=e373] [cursor=pointer]:
+            - generic [ref=e374]:
+              - img [ref=e376]
+              - paragraph [ref=e379]: AT SGN - AI Team
+            - generic "Pin this chat" [ref=e380]:
+              - generic [ref=e382]:
+                - img
+          - tab "Truong Minh Tan" [ref=e383] [cursor=pointer]:
+            - generic [ref=e384]:
+              - img [ref=e386]
+              - paragraph [ref=e389]: Truong Minh Tan
+            - generic "Pin this chat" [ref=e390]:
+              - generic [ref=e392]:
+                - img
+          - tab "Ho Minh Quan" [ref=e393] [cursor=pointer]:
+            - generic [ref=e394]:
+              - img [ref=e396]
+              - paragraph [ref=e399]: Ho Minh Quan
+            - generic "Pin this chat" [ref=e400]:
+              - generic [ref=e402]:
+                - img
+          - tab "Nguyen Van Cong" [ref=e403] [cursor=pointer]:
+            - generic [ref=e404]:
+              - img [ref=e406]
+              - paragraph [ref=e409]: Nguyen Van Cong
+            - generic "Pin this chat" [ref=e410]:
+              - generic [ref=e412]:
+                - img
+          - tab "Le Xuan Dinh [Phế]" [ref=e413] [cursor=pointer]:
+            - generic [ref=e414]:
+              - img [ref=e416]
+              - paragraph [ref=e419]: Le Xuan Dinh [Phế]
+            - generic "Pin this chat" [ref=e420]:
+              - generic [ref=e422]:
+                - img
+          - tab "Mai Van Linh" [ref=e423] [cursor=pointer]:
+            - generic [ref=e424]:
+              - img [ref=e426]
+              - paragraph [ref=e429]: Mai Van Linh
+            - generic "Pin this chat" [ref=e430]:
+              - generic [ref=e432]:
+                - img
+          - tab "Cao Van Hau (90)" [ref=e433] [cursor=pointer]:
+            - generic [ref=e434]:
+              - img [ref=e436]
+              - paragraph [ref=e439]: Cao Van Hau (90)
+            - generic "Pin this chat" [ref=e440]:
+              - generic [ref=e442]:
+                - img
+          - tab "Quynh Tuong" [ref=e443] [cursor=pointer]:
+            - generic [ref=e444]:
+              - img [ref=e446]
+              - paragraph [ref=e449]: Quynh Tuong
+            - generic "Pin this chat" [ref=e450]:
+              - generic [ref=e452]:
+                - img
+          - tab "CVR Outsource" [ref=e453] [cursor=pointer]:
+            - generic [ref=e454]:
+              - img [ref=e456]
+              - paragraph [ref=e459]: CVR Outsource
+            - generic "Pin this chat" [ref=e460]:
+              - generic [ref=e462]:
+                - img
+          - tab "CVR - Interview" [ref=e463] [cursor=pointer]:
+            - generic [ref=e464]:
+              - img [ref=e466]
+              - paragraph [ref=e469]: CVR - Interview
+            - generic "Pin this chat" [ref=e470]:
+              - generic [ref=e472]:
+                - img
+          - 'tab "Nguyen Huu Hien (WT: 7h30~16h30)" [ref=e473] [cursor=pointer]':
+            - generic [ref=e474]:
+              - img [ref=e476]
+              - paragraph [ref=e479]: "Nguyen Huu Hien (WT: 7h30~16h30)"
+            - generic "Pin this chat" [ref=e480]:
+              - generic [ref=e482]:
+                - img
+          - tab "Sinh nhat cong ty" [ref=e483] [cursor=pointer]:
+            - generic [ref=e484]:
+              - img [ref=e486]
+              - paragraph [ref=e489]: Sinh nhat cong ty
+            - generic "Pin this chat" [ref=e490]:
+              - generic [ref=e492]:
+                - img
+          - tab "Nguyen Tan Mo" [ref=e493] [cursor=pointer]:
+            - generic [ref=e494]:
+              - img [ref=e496]
+              - paragraph [ref=e499]: Nguyen Tan Mo
+            - generic "Pin this chat" [ref=e500]:
+              - generic [ref=e502]:
+                - img
+          - tab "Survival Plan ︻┻┳═一 - - - - 08/03 - 20/10" [ref=e503] [cursor=pointer]:
+            - generic [ref=e504]:
+              - img [ref=e506]
+              - paragraph [ref=e509]: Survival Plan ︻┻┳═一 - - - - 08/03 - 20/10
+            - generic "Pin this chat" [ref=e510]:
+              - generic [ref=e512]:
+                - img
+          - tab "Le Thi Ngoc Bich" [ref=e513] [cursor=pointer]:
+            - generic [ref=e514]:
+              - img [ref=e516]
+              - paragraph [ref=e519]: Le Thi Ngoc Bich
+            - generic "Pin this chat" [ref=e520]:
+              - generic [ref=e522]:
+                - img
+          - tab "Vuong Chi Bao" [ref=e523] [cursor=pointer]:
+            - generic [ref=e524]:
+              - img [ref=e526]
+              - paragraph [ref=e529]: Vuong Chi Bao
+            - generic "Pin this chat" [ref=e530]:
+              - generic [ref=e532]:
+                - img
+          - tab "Lam Tuan Anh" [ref=e533] [cursor=pointer]:
+            - generic [ref=e534]:
+              - img [ref=e536]
+              - paragraph [ref=e539]: Lam Tuan Anh
+            - generic "Pin this chat" [ref=e540]:
+              - generic [ref=e542]:
+                - img
+          - tab "Tran Ngoc Hoang" [ref=e543] [cursor=pointer]:
+            - generic [ref=e544]:
+              - img [ref=e546]
+              - paragraph [ref=e549]: Tran Ngoc Hoang
+            - generic "Pin this chat" [ref=e550]:
+              - generic [ref=e552]:
+                - img
+          - tab "Do Thien Hoang" [ref=e553] [cursor=pointer]:
+            - generic [ref=e554]:
+              - img [ref=e556]
+              - paragraph [ref=e559]: Do Thien Hoang
+            - generic "Pin this chat" [ref=e560]:
+              - generic [ref=e562]:
+                - img
+          - tab "HCM_Bui The Tai (タイ-1982)_OFF_06.25~26" [ref=e563] [cursor=pointer]:
+            - generic [ref=e564]:
+              - img [ref=e566]
+              - paragraph [ref=e569]: HCM_Bui The Tai (タイ-1982)_OFF_06.25~26
+            - generic "Pin this chat" [ref=e570]:
+              - generic [ref=e572]:
+                - img
+          - tab "Trinh Thi Huynh Tram(86)" [ref=e573] [cursor=pointer]:
+            - generic [ref=e574]:
+              - img [ref=e576]
+              - paragraph [ref=e579]: Trinh Thi Huynh Tram(86)
+            - generic "Pin this chat" [ref=e580]:
+              - generic [ref=e582]:
+                - img
+          - tab "HCM_Pham Thi Ngoc Bich (Mòe)_OFF 29/6~14/7" [ref=e583] [cursor=pointer]:
+            - generic [ref=e584]:
+              - img [ref=e586]
+              - paragraph [ref=e589]: HCM_Pham Thi Ngoc Bich (Mòe)_OFF 29/6~14/7
+            - generic "Pin this chat" [ref=e590]:
+              - generic [ref=e592]:
+                - img
+          - tab "Huynh Thi Cam Vang" [ref=e593] [cursor=pointer]:
+            - generic [ref=e594]:
+              - img [ref=e596]
+              - paragraph [ref=e599]: Huynh Thi Cam Vang
+            - generic "Pin this chat" [ref=e600]:
+              - generic [ref=e602]:
+                - img
+          - tab "Duong Binh Hoc" [ref=e603] [cursor=pointer]:
+            - generic [ref=e604]:
+              - img [ref=e606]
+              - paragraph [ref=e609]: Duong Binh Hoc
+            - generic "Pin this chat" [ref=e610]:
+              - generic [ref=e612]:
+                - img
+          - tab "Ho Quoc Trung(99)" [ref=e613] [cursor=pointer]:
+            - generic [ref=e614]:
+              - img [ref=e616]
+              - paragraph [ref=e619]: Ho Quoc Trung(99)
+            - generic "Pin this chat" [ref=e620]:
+              - generic [ref=e622]:
+                - img
+          - tab "Tran Minh" [ref=e623] [cursor=pointer]:
+            - generic [ref=e624]:
+              - img [ref=e626]
+              - paragraph [ref=e629]: Tran Minh
+            - generic "Pin this chat" [ref=e630]:
+              - generic [ref=e632]:
+                - img
+          - tab "Le Quang Nhu" [ref=e633] [cursor=pointer]:
+            - generic [ref=e634]:
+              - img [ref=e636]
+              - paragraph [ref=e639]: Le Quang Nhu
+            - generic "Pin this chat" [ref=e640]:
+              - generic [ref=e642]:
+                - img
+          - tab "Luong Hong Toan" [ref=e643] [cursor=pointer]:
+            - generic [ref=e644]:
+              - img [ref=e646]
+              - paragraph [ref=e649]: Luong Hong Toan
+            - generic "Pin this chat" [ref=e650]:
+              - generic [ref=e652]:
+                - img
+          - tab "Nguyen Thi Minh Thu" [ref=e653] [cursor=pointer]:
+            - generic [ref=e654]:
+              - img [ref=e656]
+              - paragraph [ref=e659]: Nguyen Thi Minh Thu
+            - generic "Pin this chat" [ref=e660]:
+              - generic [ref=e662]:
+                - img
+          - tab "HCM_Nguyen Quang Tin (95)" [ref=e663] [cursor=pointer]:
+            - generic [ref=e664]:
+              - img [ref=e666]
+              - paragraph [ref=e669]: HCM_Nguyen Quang Tin (95)
+            - generic "Pin this chat" [ref=e670]:
+              - generic [ref=e672]:
+                - img
+          - tab "Luong Van Binh" [ref=e673] [cursor=pointer]:
+            - generic [ref=e674]:
+              - img [ref=e676]
+              - paragraph [ref=e679]: Luong Van Binh
+            - generic "Pin this chat" [ref=e680]:
+              - generic [ref=e682]:
+                - img
+          - tab "Do Qui Long" [ref=e683] [cursor=pointer]:
+            - generic [ref=e684]:
+              - img [ref=e686]
+              - paragraph [ref=e689]: Do Qui Long
+            - generic "Pin this chat" [ref=e690]:
+              - generic [ref=e692]:
+                - img
+          - tab "HCM_Cao Chung Hiếu" [ref=e693] [cursor=pointer]:
+            - generic [ref=e694]:
+              - img [ref=e696]
+              - paragraph [ref=e699]: HCM_Cao Chung Hiếu
+            - generic "Pin this chat" [ref=e700]:
+              - generic [ref=e702]:
+                - img
+          - tab "Nguyen Pham Phuong Thao" [ref=e703] [cursor=pointer]:
+            - generic [ref=e704]:
+              - img [ref=e706]
+              - paragraph [ref=e709]: Nguyen Pham Phuong Thao
+            - generic "Pin this chat" [ref=e710]:
+              - generic [ref=e712]:
+                - img
+          - tab "Huynh Hoang Tran" [ref=e713] [cursor=pointer]:
+            - generic [ref=e714]:
+              - img [ref=e716]
+              - paragraph [ref=e719]: Huynh Hoang Tran
+            - generic "Pin this chat" [ref=e720]:
+              - generic [ref=e722]:
+                - img
+          - tab "Mai Hong Quan" [ref=e723] [cursor=pointer]:
+            - generic [ref=e724]:
+              - img [ref=e726]
+              - paragraph [ref=e729]: Mai Hong Quan
+            - generic "Pin this chat" [ref=e730]:
+              - generic [ref=e732]:
+                - img
+          - tab "HCM _ Le Thanh Hao" [ref=e733] [cursor=pointer]:
+            - generic [ref=e734]:
+              - img [ref=e736]
+              - paragraph [ref=e739]: HCM _ Le Thanh Hao
+            - generic "Pin this chat" [ref=e740]:
+              - generic [ref=e742]:
+                - img
+          - tab "Pham Viet Dao" [ref=e743] [cursor=pointer]:
+            - generic [ref=e744]:
+              - img [ref=e746]
+              - paragraph [ref=e749]: Pham Viet Dao
+            - generic "Pin this chat" [ref=e750]:
+              - generic [ref=e752]:
+                - img
+          - tab "Training - DienHV - 2025/04/01" [ref=e753] [cursor=pointer]:
+            - generic [ref=e754]:
+              - img [ref=e756]
+              - paragraph [ref=e759]: Training - DienHV - 2025/04/01
+            - generic "Pin this chat" [ref=e760]:
+              - generic [ref=e762]:
+                - img
+          - tab "Pham Thi Quynh Nhu" [ref=e763] [cursor=pointer]:
+            - generic [ref=e764]:
+              - img [ref=e766]
+              - paragraph [ref=e769]: Pham Thi Quynh Nhu
+            - generic "Pin this chat" [ref=e770]:
+              - generic [ref=e772]:
+                - img
+          - tab "Training - HoangTN - 2025/02/10" [ref=e773] [cursor=pointer]:
+            - generic [ref=e774]:
+              - img [ref=e776]
+              - paragraph [ref=e779]: Training - HoangTN - 2025/02/10
+            - generic "Pin this chat" [ref=e780]:
+              - generic [ref=e782]:
+                - img
+          - tab "Nguyen The Thanh" [ref=e783] [cursor=pointer]:
+            - generic [ref=e784]:
+              - img [ref=e786]
+              - paragraph [ref=e789]: Nguyen The Thanh
+            - generic "Pin this chat" [ref=e790]:
+              - generic [ref=e792]:
+                - img
+          - tab "Ho Thi Kim Oanh" [ref=e793] [cursor=pointer]:
+            - generic [ref=e794]:
+              - img [ref=e796]
+              - paragraph [ref=e799]: Ho Thi Kim Oanh
+            - generic "Pin this chat" [ref=e800]:
+              - generic [ref=e802]:
+                - img
+          - tab "IS Service Desk" [ref=e803] [cursor=pointer]:
+            - generic [ref=e804]:
+              - img [ref=e806]
+              - paragraph [ref=e809]: IS Service Desk
+            - generic "Pin this chat" [ref=e810]:
+              - generic [ref=e812]:
+                - img
+          - tab "HCM_Phan Thi Kim Phuong - LWD 31.3" [ref=e813] [cursor=pointer]:
+            - generic [ref=e814]:
+              - img [ref=e816]
+              - paragraph [ref=e819]: HCM_Phan Thi Kim Phuong - LWD 31.3
+            - generic "Pin this chat" [ref=e820]:
+              - generic [ref=e822]:
+                - img
+          - 'tab "Nguyen Viet Hai (WT: 8h30~17h30)" [ref=e823] [cursor=pointer]':
+            - generic [ref=e824]:
+              - img [ref=e826]
+              - paragraph [ref=e829]: "Nguyen Viet Hai (WT: 8h30~17h30)"
+            - generic "Pin this chat" [ref=e830]:
+              - generic [ref=e832]:
+                - img
+          - tab "CVR Dev - 3DS (109208)" [ref=e833] [cursor=pointer]:
+            - generic [ref=e834]:
+              - img [ref=e836]
+              - paragraph [ref=e839]: CVR Dev - 3DS (109208)
+            - generic "Pin this chat" [ref=e840]:
+              - generic [ref=e842]:
+                - img
+          - tab "Training - KhoiVC - 2024/11/11" [ref=e843] [cursor=pointer]:
+            - generic [ref=e844]:
+              - img [ref=e846]
+              - paragraph [ref=e849]: Training - KhoiVC - 2024/11/11
+            - generic "Pin this chat" [ref=e850]:
+              - generic [ref=e852]:
+                - img
+          - tab "Nguyen Tan Phat" [ref=e853] [cursor=pointer]:
+            - generic [ref=e854]:
+              - img [ref=e856]
+              - paragraph [ref=e859]: Nguyen Tan Phat
+            - generic "Pin this chat" [ref=e860]:
+              - generic [ref=e862]:
+                - img
+          - listitem [ref=e863]:
+            - paragraph [ref=e864]: Group/Direct Chat not displayed:458
+            - button "Show more" [ref=e867] [cursor=pointer]
+    - generic [ref=e868]:
+      - generic [ref=e871]:
+        - generic [ref=e872]:
+          - img "ルームヘッダーアイコン" [ref=e873]
+          - heading "My Chat" [level=1] [ref=e875]:
+            - generic [ref=e876]: My Chat
+            - generic [ref=e878] [cursor=pointer]:
+              - img
+        - generic [ref=e880]:
+          - button "Keyword Search" [ref=e883] [cursor=pointer]:
+            - generic [ref=e884]:
+              - img
+          - button "Files" [ref=e887] [cursor=pointer]:
+            - generic [ref=e888]:
+              - img
+      - generic [ref=e891]:
+        - main [ref=e893]:
+          - generic [ref=e894]:
+            - generic [ref=e895]:
+              - img "Loading" [ref=e896]
+              - text: Loading messages...
+            - generic [ref=e901]: 27/2/2025
+            - generic [ref=e904]:
+              - button "Duong Tien Loc" [ref=e906]:
+                - img "Duong Tien Loc" [ref=e908] [cursor=pointer]
+              - generic [ref=e909]:
+                - generic [ref=e910]:
+                  - button "Duong Tien Loc" [ref=e911]:
+                    - paragraph [ref=e912] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e913]: Hybrid Technologies Vietnam
+                - generic [ref=e914]: Message deleted.
+              - generic [ref=e915]:
+                - text: 27/2/2025 12:42
+                - generic [ref=e917]:
+                  - img
+            - generic [ref=e920]:
+              - generic [ref=e922]: Message deleted.
+              - generic [ref=e923]:
+                - text: 12:42
+                - generic [ref=e925]:
+                  - img
+            - generic [ref=e928]:
+              - generic [ref=e930]: Message deleted.
+              - generic [ref=e931]:
+                - text: 12:42
+                - generic [ref=e933]:
+                  - img
+            - generic [ref=e936]:
+              - generic [ref=e938]: zz
+              - generic [ref=e939]: 12:44
+            - generic [ref=e942]:
+              - button "Duong Tien Loc" [ref=e944]:
+                - img "Duong Tien Loc" [ref=e946] [cursor=pointer]
+              - generic [ref=e947]:
+                - generic [ref=e948]:
+                  - button "Duong Tien Loc" [ref=e949]:
+                    - paragraph [ref=e950] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e951]: Hybrid Technologies Vietnam
+                - generic [ref=e952]: "<img class=\"sc-Nxspf kaISWE \" data-file-id=\"1508581583\" height=\"120\" src=\"gateway/preview_file.php?bin=1&amp;preview=1&amp;file_id=1508581583\" alt=\"\" style=\"height: 120px;\">"
+              - generic [ref=e953]: 27/2/2025 16:46
+            - generic [ref=e956]:
+              - generic [ref=e958]: gateway/preview_file.php?bin=1&amp;preview=1&amp;file_id=1508581583
+              - generic [ref=e959]: 16:46
+            - generic [ref=e963]: 14/3/2025
+            - generic [ref=e966]:
+              - button "Duong Tien Loc" [ref=e968]:
+                - img "Duong Tien Loc" [ref=e970] [cursor=pointer]
+              - generic [ref=e971]:
+                - generic [ref=e972]:
+                  - button "Duong Tien Loc" [ref=e973]:
+                    - paragraph [ref=e974] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e975]: Hybrid Technologies Vietnam
+                - code [ref=e977]: abc
+              - generic [ref=e978]:
+                - text: 14/3/2025 11:00
+                - generic [ref=e980]:
+                  - img
+            - generic [ref=e983]:
+              - button "Duong Tien Loc" [ref=e985]:
+                - img "Duong Tien Loc" [ref=e987] [cursor=pointer]
+              - generic [ref=e989]:
+                - button "Duong Tien Loc" [ref=e990]:
+                  - paragraph [ref=e991] [cursor=pointer]: Duong Tien Loc
+                - paragraph [ref=e992]: Hybrid Technologies Vietnam
+              - generic [ref=e995]:
+                - text: 14/3/2025 13:34
+                - generic [ref=e997]:
+                  - img
+            - generic [ref=e1004]: 13:35
+            - generic [ref=e1008]: 11/9/2025
+            - generic [ref=e1011]:
+              - button "Duong Tien Loc" [ref=e1013]:
+                - img "Duong Tien Loc" [ref=e1015] [cursor=pointer]
+              - generic [ref=e1016]:
+                - generic [ref=e1017]:
+                  - button "Duong Tien Loc" [ref=e1018]:
+                    - paragraph [ref=e1019] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1020]: Hybrid Technologies Vietnam
+                - generic [ref=e1021]:
+                  - text: "- Mô tả lỗi Khi hiển thị dữ liệu của các booking thuộc loại \"selfBook\" (SB), hệ thống gặp lỗi **NullPointerException**. Lỗi này làm gián đoạn quá trình hiển thị, dẫn đến việc dữ liệu bị thiếu. - Nguyên nhân 1. Theo yêu cầu từ ticket 110547, các site SB và AU đã bị xóa. Do đó, trong HashMap có tên là `total`, key `sb` không còn tồn tại 2. Khi thực hiện tính toán cho các booking SB, truy xuất dữ liệu từ `HashMap: total` bằng key `sb` thì kết quả trả về là null(vì key này không tồn tại). Code tính toán với giá trị null này dẫn tới lỗi NullPointerException và làm dừng quá trình hiển thị dữ liệu. code:"
+                  - link "https://milkode.airtrip-in-house.com/home/sgtool/jsp/itn/itnRefer.jsp?query=String%5B%5D+sumName+&shead=package#n792" [ref=e1023] [cursor=pointer]:
+                    - /url: https://milkode.airtrip-in-house.com/home/sgtool/jsp/itn/itnRefer.jsp?query=String%5B%5D+sumName+&shead=package#n792
+                  - link "https://milkode.airtrip-in-house.com/home/sgtool/jsp/itn/itnRefer.jsp?query=String%5B%5D+sumName+&shead=package#n46" [ref=e1025] [cursor=pointer]:
+                    - /url: https://milkode.airtrip-in-house.com/home/sgtool/jsp/itn/itnRefer.jsp?query=String%5B%5D+sumName+&shead=package#n46
+                  - text: "- Giải pháp 1. Kiểm tra code thì việc tính toán trên đang thống kê cho data cho 2 site là SG và AD, nên với booking SB thì không cần thiết"
+                  - link "https://milkode.airtrip-in-house.com/home/sgtool/jsp/itn/itnRefer.jsp?query=String%5B%5D+sumName+&shead=package#n640" [ref=e1027] [cursor=pointer]:
+                    - /url: https://milkode.airtrip-in-house.com/home/sgtool/jsp/itn/itnRefer.jsp?query=String%5B%5D+sumName+&shead=package#n640
+                  - text: => check thêm điều kiện là SG, AD thì mới thực hiện logic này 2. Thêm lại key sb
+              - generic [ref=e1028]:
+                - text: 11/9/2025 15:06
+                - generic [ref=e1030]:
+                  - img
+            - generic [ref=e1034]: 16/9/2025
+            - generic [ref=e1037]:
+              - button "Duong Tien Loc" [ref=e1039]:
+                - img "Duong Tien Loc" [ref=e1041] [cursor=pointer]
+              - generic [ref=e1042]:
+                - generic [ref=e1043]:
+                  - button "Duong Tien Loc" [ref=e1044]:
+                    - paragraph [ref=e1045] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1046]: Hybrid Technologies Vietnam
+                - generic [ref=e1047]:
+                  - code [ref=e1048]: "Ký hiệu: I+ = interline = true I- = interline = false D+ = direct = true D- = direct = false"
+                  - code [ref=e1049]: "| s1 | s2 | s3 | compare(s1,s2) | compare(s1,s3) | compare(s2,s3) | Result | | ----- | ----- | ----- | -------------- | -------------- | -------------- | ---------------------------------------------------------------------------------- | | I+ D+ | I+ D+ | I+ D+ | true | true | true | ✔ nhất quán (s1 < s2 < s3, nhưng thực chất là tất cả bằng nhau vì code ưu tiên s1) |"
+              - generic [ref=e1050]: 16/9/2025 16:00
+            - generic [ref=e1054]: 6/10/2025
+            - generic [ref=e1057]:
+              - button "Duong Tien Loc" [ref=e1059]:
+                - img "Duong Tien Loc" [ref=e1061] [cursor=pointer]
+              - generic [ref=e1062]:
+                - generic [ref=e1063]:
+                  - button "Duong Tien Loc" [ref=e1064]:
+                    - paragraph [ref=e1065] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1066]: Hybrid Technologies Vietnam
+                - generic [ref=e1067]: aws locdt/ZxcgaT865!@2
+              - generic [ref=e1068]:
+                - text: 6/10/2025 8:45
+                - generic [ref=e1070]:
+                  - img
+            - generic [ref=e1073]:
+              - button "Duong Tien Loc" [ref=e1075]:
+                - img "Duong Tien Loc" [ref=e1077] [cursor=pointer]
+              - generic [ref=e1078]:
+                - generic [ref=e1079]:
+                  - button "Duong Tien Loc" [ref=e1080]:
+                    - paragraph [ref=e1081] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1082]: Hybrid Technologies Vietnam
+                - generic [ref=e1083]:
+                  - text: aws-locdt
+                  - generic [ref=e1085]:
+                    - text: authenticator.txt (767 B)
+                    - generic [ref=e1086] [cursor=pointer]: Preview
+              - generic [ref=e1087]: 6/10/2025 13:21
+            - generic [ref=e1091]: 8/10/2025
+            - generic [ref=e1094]:
+              - button "Duong Tien Loc" [ref=e1096]:
+                - img "Duong Tien Loc" [ref=e1098] [cursor=pointer]
+              - generic [ref=e1100]:
+                - button "Duong Tien Loc" [ref=e1101]:
+                  - paragraph [ref=e1102] [cursor=pointer]: Duong Tien Loc
+                - paragraph [ref=e1103]: Hybrid Technologies Vietnam
+              - generic [ref=e1106]: 8/10/2025 16:44
+            - generic [ref=e1109]:
+              - generic [ref=e1111]: Message deleted.
+              - generic [ref=e1112]:
+                - text: 16:46
+                - generic [ref=e1114]:
+                  - img
+            - generic [ref=e1117]:
+              - generic [ref=e1119]: 1F981
+              - generic [ref=e1120]: 16:46
+            - generic [ref=e1123]:
+              - generic [ref=e1125]:
+                - text: "1"
+                - text: "1"
+              - generic [ref=e1127]:
+                - text: 16:49
+                - generic [ref=e1129]:
+                  - img
+            - generic [ref=e1132]:
+              - generic [ref=e1134]: 🦁
+              - generic [ref=e1135]: 16:54
+            - generic [ref=e1139]: 12/11/2025
+            - generic [ref=e1142]:
+              - button "Duong Tien Loc" [ref=e1144]:
+                - img "Duong Tien Loc" [ref=e1146] [cursor=pointer]
+              - generic [ref=e1147]:
+                - generic [ref=e1148]:
+                  - button "Duong Tien Loc" [ref=e1149]:
+                    - paragraph [ref=e1150] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1151]: Hybrid Technologies Vietnam
+                - generic [ref=e1154]: second. (516.67 KB)
+              - generic [ref=e1155]: 12/11/2025 15:06
+            - generic [ref=e1159]: 27/11/2025
+            - generic [ref=e1162]:
+              - button "Duong Tien Loc" [ref=e1164]:
+                - img "Duong Tien Loc" [ref=e1166] [cursor=pointer]
+              - generic [ref=e1167]:
+                - generic [ref=e1168]:
+                  - button "Duong Tien Loc" [ref=e1169]:
+                    - paragraph [ref=e1170] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1171]: Hybrid Technologies Vietnam
+                - generic [ref=e1172]: fab build_deploy_notify:sgapi,pre,feature-pre2-sharing,"ticket 111614" -H pre2-api-reserve1.pre2.skygate.co.jp
+              - generic [ref=e1173]: 27/11/2025 15:17
+            - generic [ref=e1177]: 5/1/2026
+            - generic [ref=e1180]:
+              - button "Duong Tien Loc" [ref=e1182]:
+                - img "Duong Tien Loc" [ref=e1184] [cursor=pointer]
+              - generic [ref=e1185]:
+                - generic [ref=e1186]:
+                  - button "Duong Tien Loc" [ref=e1187]:
+                    - paragraph [ref=e1188] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1189]: Hybrid Technologies Vietnam
+                - code [ref=e1191]: "fab build_deploy_notify:skygserv,pre,feature-pre1-sharing,\"Test new feature with 'quoted material'\" -H pre1-skygserv1.pre1.skygate.co.jp # OR ../deploy-notify start pre1-skygserv1 feature-pre1-sharing \"Test new feature with 'quoted material'\" fab build_deploy:skygserv,pre,feature-pre1-sharing -H pre1-skygserv1.pre1.skygate.co.jp ../deploy-notify done pre1-skygserv1 feature-pre1-sharing \"Test new feature with 'quoted material'\" # OR ../deploy-notify start pre1-skygserv1 feature-pre1-sharing \"Test new feature with 'quoted material'\" fab build:skygserv,pre,feature-pre1-sharing -H mgmt-deploy1 fab deploy:skygserv,pre -H pre1-skygserv1.pre1.skygate.co.jp ../deploy-notify done pre1-skygserv1 feature-pre1-sharing \"Test new feature with 'quoted material'\""
+              - generic [ref=e1192]: 5/1 10:16
+            - generic [ref=e1196]: 8/1/2026
+            - generic [ref=e1199]:
+              - button "Duong Tien Loc" [ref=e1201]:
+                - img "Duong Tien Loc" [ref=e1203] [cursor=pointer]
+              - generic [ref=e1204]:
+                - generic [ref=e1205]:
+                  - button "Duong Tien Loc" [ref=e1206]:
+                    - paragraph [ref=e1207] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1208]: Hybrid Technologies Vietnam
+                - generic [ref=e1209]: fab build_deploy_notify:search_air,pre,feature-pre2-sharing,"110923 add fuel tax" -H pre2-air1.pre2.skygate.co.jp
+              - generic [ref=e1210]: 8/1 13:17
+            - generic [ref=e1213]:
+              - button "Duong Tien Loc" [ref=e1215]:
+                - img "Duong Tien Loc" [ref=e1217] [cursor=pointer]
+              - generic [ref=e1218]:
+                - generic [ref=e1219]:
+                  - button "Duong Tien Loc" [ref=e1220]:
+                    - paragraph [ref=e1221] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1222]: Hybrid Technologies Vietnam
+                - generic [ref=e1223]: ../deploy-notify start pre2-corgi1 feature-pre2-sharing "rdm 110923"
+              - generic [ref=e1224]: 8/1 15:03
+            - generic [ref=e1228]: 19/1/2026
+            - generic [ref=e1231]:
+              - button "Duong Tien Loc" [ref=e1233]:
+                - img "Duong Tien Loc" [ref=e1235] [cursor=pointer]
+              - generic [ref=e1236]:
+                - generic [ref=e1237]:
+                  - button "Duong Tien Loc" [ref=e1238]:
+                    - paragraph [ref=e1239] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1240]: Hybrid Technologies Vietnam
+                - generic [ref=e1241]: fab build_deploy_notify:search_air,pre,feature-pre3-sharing,"add log test" -H pre3-air1.pre3.skygate.co.jp
+              - generic [ref=e1242]: 19/1 15:03
+            - generic [ref=e1246]: 22/1/2026
+            - generic [ref=e1249]:
+              - button "Duong Tien Loc" [ref=e1251]:
+                - img "Duong Tien Loc" [ref=e1253] [cursor=pointer]
+              - generic [ref=e1254]:
+                - generic [ref=e1255]:
+                  - button "Duong Tien Loc" [ref=e1256]:
+                    - paragraph [ref=e1257] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1258]: Hybrid Technologies Vietnam
+                - generic [ref=e1259]: fab build_deploy_notify:sgapi,pre,feature-pre2-sharing,"rdm 111224" -H pre2-api-reserve1.pre2.skygate.co.jp fab build_deploy_notify:sgapi,pre,feature-pre2-sharing,"rdm 111224" -H pre2-api-dair1.pre2.skygate.co.jp fab build_deploy_notify:sg_back,pre,feature-pre4-sharing,"rdm 111101" -H pre4-sgback1.pre4.skygate.co.jp fab build_deploy_notify:sgtool,pre,feature-pre2-sharing,"rdm 111224" -H pre2-sgtool1.pre2.skygate.co.jp fab build_deploy_notify:aal_gw,pre,feature-pre2-sharing,"rdm 111224" -H pre2-gws-rsv1.pre2.skygate.co.jp fab build_deploy_notify:aal_batch,pre,feature-pre2-sharing,"rdm 111224" -H pre2-bat1.pre2.skygate.co.jp
+              - generic [ref=e1260]:
+                - text: 22/1 13:46
+                - generic [ref=e1262]:
+                  - img
+            - generic [ref=e1266]: 27/1/2026
+            - generic [ref=e1269]:
+              - button "Duong Tien Loc" [ref=e1271]:
+                - img "Duong Tien Loc" [ref=e1273] [cursor=pointer]
+              - generic [ref=e1274]:
+                - generic [ref=e1275]:
+                  - button "Duong Tien Loc" [ref=e1276]:
+                    - paragraph [ref=e1277] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1278]: Hybrid Technologies Vietnam
+                - generic [ref=e1279]:
+                  - link "https://www.fortinet.com/support/product-downloads#vpn" [ref=e1281] [cursor=pointer]:
+                    - /url: https://www.fortinet.com/support/product-downloads#vpn
+                  - generic [ref=e1282]:
+                    - link "https://drive.google.com/drive/folders/1hu9k6ju2p9M8XmZ-tcgKzNV9oIlbyeOf" [ref=e1283] [cursor=pointer]:
+                      - /url: https://drive.google.com/drive/folders/1hu9k6ju2p9M8XmZ-tcgKzNV9oIlbyeOf
+                    - generic [ref=e1284] [cursor=pointer]: Preview
+                  - generic [ref=e1285]:
+                    - link "https://drive.google.com/drive/folders/1sA71r4cYYaA559-3ZhFp7TRAxx4J8QUV" [ref=e1286] [cursor=pointer]:
+                      - /url: https://drive.google.com/drive/folders/1sA71r4cYYaA559-3ZhFp7TRAxx4J8QUV
+                    - generic [ref=e1287] [cursor=pointer]: Preview
+                  - generic [ref=e1288]:
+                    - link "https://drive.google.com/drive/folders/16u-QcrXpd3nJk381iiNVEgmCPzC4nstA" [ref=e1289] [cursor=pointer]:
+                      - /url: https://drive.google.com/drive/folders/16u-QcrXpd3nJk381iiNVEgmCPzC4nstA
+                    - generic [ref=e1290] [cursor=pointer]: Preview
+              - generic [ref=e1291]: 27/1 16:45
+            - generic [ref=e1294]:
+              - generic [ref=e1296]:
+                - code [ref=e1297]: "1. VPN Information: * VPN Settings: - Remote gateway: 118.69.34.15 - Pre-shared key: ~s+H1JlA0w$B5EH5f%#({\\@EQ`9b * Phase 1 information: - DH Group: 18 - Local ID: hcm-airtrip-international-peer * Phase 2 information: - DH Group: 18 * VPN Login account: - Username: locdt - Password: 6&*{*L9}X){h * Expiration date: Fri Jan 15 2027 00:00:00 GMT+0700 (Indochina Time)"
+                - text: "WT: Zxc123456!@"
+              - generic [ref=e1298]:
+                - text: 16:46
+                - generic [ref=e1300]:
+                  - img
+            - generic [ref=e1304]: 29/1/2026
+            - generic [ref=e1307]:
+              - button "Duong Tien Loc" [ref=e1309]:
+                - img "Duong Tien Loc" [ref=e1311] [cursor=pointer]
+              - generic [ref=e1312]:
+                - generic [ref=e1313]:
+                  - button "Duong Tien Loc" [ref=e1314]:
+                    - paragraph [ref=e1315] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1316]: Hybrid Technologies Vietnam
+                - generic [ref=e1317]: 10.11.11.162
+              - generic [ref=e1318]: 29/1 17:22
+            - generic [ref=e1322]: 21/4/2026
+            - generic [ref=e1325]:
+              - button "Duong Tien Loc" [ref=e1327]:
+                - img "Duong Tien Loc" [ref=e1329] [cursor=pointer]
+              - generic [ref=e1330]:
+                - generic [ref=e1331]:
+                  - button "Duong Tien Loc" [ref=e1332]:
+                    - paragraph [ref=e1333] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1334]: Hybrid Technologies Vietnam
+                - generic [ref=e1338]:
+                  - text: image_2026_4_21.png (44.21 KB)
+                  - generic [ref=e1339] [cursor=pointer]: Preview
+              - generic [ref=e1340]: 21/4 10:09
+            - generic [ref=e1344]: 4/6/2026
+            - generic [ref=e1347]:
+              - button "Duong Tien Loc" [ref=e1349]:
+                - img "Duong Tien Loc" [ref=e1351] [cursor=pointer]
+              - generic [ref=e1352]:
+                - generic [ref=e1353]:
+                  - button "Duong Tien Loc" [ref=e1354]:
+                    - paragraph [ref=e1355] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1356]: Hybrid Technologies Vietnam
+                - generic [ref=e1357]: Message deleted.
+              - generic [ref=e1358]:
+                - text: 4/6 12:54
+                - generic [ref=e1360]:
+                  - img
+            - generic [ref=e1363]:
+              - generic [ref=e1365]: Message deleted.
+              - generic [ref=e1366]:
+                - text: 12:54
+                - generic [ref=e1368]:
+                  - img
+            - generic [ref=e1371]:
+              - generic [ref=e1373]: Message deleted.
+              - generic [ref=e1374]:
+                - text: 12:54
+                - generic [ref=e1376]:
+                  - img
+            - generic [ref=e1380]: 19/6/2026
+            - generic [ref=e1383]:
+              - button "Duong Tien Loc" [ref=e1385]:
+                - img "Duong Tien Loc" [ref=e1387] [cursor=pointer]
+              - generic [ref=e1388]:
+                - generic [ref=e1389]:
+                  - button "Duong Tien Loc" [ref=e1390]:
+                    - paragraph [ref=e1391] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1392]: Hybrid Technologies Vietnam
+                - generic [ref=e1393]: 10.11.11.208
+              - generic [ref=e1394]: 19/6 17:48
+            - generic [ref=e1398]: 8/7/2026
+            - generic [ref=e1401]:
+              - button "Duong Tien Loc" [ref=e1403]:
+                - img "Duong Tien Loc" [ref=e1405] [cursor=pointer]
+              - generic [ref=e1406]:
+                - generic [ref=e1407]:
+                  - button "Duong Tien Loc" [ref=e1408]:
+                    - paragraph [ref=e1409] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1410]: Hybrid Technologies Vietnam
+                - generic [ref=e1414]:
+                  - text: 6DA1A991-21E0-4AFB-9F12-751A7AE01FE0.gif (136.57 KB)
+                  - generic [ref=e1415] [cursor=pointer]: Preview
+              - generic [ref=e1416]: 8/7 14:41
+            - generic [ref=e1419]:
+              - button "Duong Tien Loc" [ref=e1421]:
+                - img "Duong Tien Loc" [ref=e1423] [cursor=pointer]
+              - generic [ref=e1424]:
+                - generic [ref=e1425]:
+                  - button "Duong Tien Loc" [ref=e1426]:
+                    - paragraph [ref=e1427] [cursor=pointer]: Duong Tien Loc
+                  - paragraph [ref=e1428]: Hybrid Technologies Vietnam
+                - generic [ref=e1432]:
+                  - text: codex-e2e-native.gif (14 B)
+                  - generic [ref=e1433] [cursor=pointer]: Preview
+              - generic [ref=e1434]: 8/7 15:55
+            - generic [ref=e1437]:
+              - generic [ref=e1442]:
+                - text: codex-signed-ok2.gif (14 B)
+                - generic [ref=e1443] [cursor=pointer]: Preview
+              - generic [ref=e1444]: 15:58
+            - generic [ref=e1447]:
+              - generic [ref=e1452]:
+                - text: codex-extension-signed.gif (14 B)
+                - generic [ref=e1453] [cursor=pointer]: Preview
+              - generic [ref=e1454]: 16:01
+            - generic [ref=e1457]:
+              - button "Duong Tien Loc" [ref=e1459]:
+                - img "Duong Tien Loc" [ref=e1461] [cursor=pointer]
+              - generic [ref=e1463]:
+                - button "Duong Tien Loc" [ref=e1464]:
+                  - paragraph [ref=e1465] [cursor=pointer]: Duong Tien Loc
+                - paragraph [ref=e1466]: Hybrid Technologies Vietnam
+              - generic [ref=e1469]: 8/7 16:08
+            - generic [ref=e1476]: 16:09
+            - generic [ref=e1483]: 16:09
+        - generic [ref=e1485]:
+          - generic [ref=e1486]:
+            - generic [ref=e1487]:
+              - list [ref=e1488]:
+                - button [ref=e1491] [cursor=pointer]
+                - 'button "Emoji : Express yourself" [ref=e1494] [cursor=pointer]':
+                  - generic [ref=e1495]:
+                    - img
+                - button "Upload files" [active] [ref=e1498] [cursor=pointer]:
+                  - generic [ref=e1499]:
+                    - img
+              - generic [ref=e1500]:
+                - generic [ref=e1502]:
+                  - checkbox "Press Enter to send" [checked] [ref=e1503]
+                  - generic [ref=e1504] [cursor=pointer]:
+                    - img
+                  - generic [ref=e1505] [cursor=pointer]: Press Enter to send
+                - generic [ref=e1507]:
+                  - button "Send" [disabled]
+                  - button [disabled]:
+                    - generic:
+                      - img
+            - textbox "Enter your message here (press Shift + Enter for line break)" [ref=e1511]:
+              - /placeholder: "Enter your message here\n(press Shift + Enter for line break)"
+          - button "Broaden window" [ref=e1514] [cursor=pointer]:
+            - generic [ref=e1515]:
+              - img
+          - button "Broaden window" [ref=e1518] [cursor=pointer]:
+            - generic [ref=e1519]:
+              - img
+      - generic [ref=e1525]:
+        - generic [ref=e1527]:
+          - generic [ref=e1529]:
+            - paragraph [ref=e1530]: Description
+            - button "Edit Chat Info" [ref=e1531] [cursor=pointer]:
+              - generic [ref=e1532]:
+                - img
+          - generic [ref=e1536]: Hi
+        - generic [ref=e1538]:
+          - paragraph [ref=e1540]: Tasks
+          - button "Add Task" [ref=e1542] [cursor=pointer]:
+            - generic [ref=e1544]:
+              - img
+            - paragraph [ref=e1545]: Add Task
+            - generic [ref=e1547]:
+              - img
+          - generic [ref=e1550]:
+            - img
+            - paragraph [ref=e1551]: No Tasks

@@ -1,0 +1,99 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - heading "Extensions" [level=1] [ref=e9]
+      - generic [ref=e12]:
+        - button [ref=e13] [cursor=pointer]
+        - generic [ref=e14]:
+          - generic [ref=e15]: Search extensions
+          - searchbox "Search extensions" [ref=e16]
+      - generic [ref=e19]:
+        - generic [ref=e20]: Developer mode
+        - button "Developer mode" [pressed] [ref=e21] [cursor=pointer]
+    - generic [ref=e25]:
+      - button "Load unpacked" [ref=e26] [cursor=pointer]:
+        - generic [ref=e27]:
+          - generic: Load unpacked
+      - button "Pack extension" [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]:
+          - generic: Pack extension
+      - button "Update" [ref=e30] [cursor=pointer]:
+        - generic [ref=e31]:
+          - generic: Update
+  - generic [ref=e32]:
+    - navigation [ref=e34]:
+      - menu [ref=e35]:
+        - generic:
+          - menuitem "My extensions" [ref=e36] [cursor=pointer]:
+            - generic:
+              - img
+            - text: My extensions
+          - menuitem "Keyboard shortcuts" [ref=e37] [cursor=pointer]:
+            - generic:
+              - img
+            - text: Keyboard shortcuts
+      - generic [ref=e40]:
+        - text: Developing extensions? Stay up to date on
+        - link "What's New" [ref=e41] [cursor=pointer]:
+          - /url: https://developer.chrome.com/docs/extensions/whats-new?utm_source=ext_sidebar&hl=en-US
+        - text: with Chrome Extension developer documentation.
+      - generic [ref=e43]:
+        - generic:
+          - img
+        - generic [ref=e44]:
+          - text: Discover more extensions and themes on the
+          - link "Chrome Web Store" [ref=e45] [cursor=pointer]:
+            - /url: https://chromewebstore.google.com/category/extensions?utm_source=ext_sidebar&hl=en-US
+    - main [ref=e46]:
+      - generic [ref=e50]:
+        - heading "All Extensions" [level=2] [ref=e51]
+        - generic [ref=e52]:
+          - generic [ref=e54]:
+            - generic [ref=e55]:
+              - generic [ref=e56]:
+                - img [ref=e57]
+                - img "Unpacked extension" [ref=e59]:
+                  - generic [ref=e60]:
+                    - img
+              - generic [ref=e61]:
+                - generic [ref=e63]:
+                  - heading "LocDT" [level=3] [ref=e64]
+                  - generic [ref=e65]: 1.0.0
+                - generic [ref=e66]: Thêm sticker tùy chỉnh vào Chatwork
+                - generic [ref=e67]: "ID: bjejgmomdmkepfnhbahogpbffpphehlf"
+                - generic [ref=e109]:
+                  - generic [ref=e110]: Inspect views
+                  - link "service worker" [ref=e111] [cursor=pointer]
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - button "Details" [ref=e75] [cursor=pointer]:
+                  - generic [ref=e76]:
+                    - generic: Details
+                - button "Remove" [ref=e77] [cursor=pointer]:
+                  - generic [ref=e78]:
+                    - generic: Remove
+              - button "Reload" [ref=e112] [cursor=pointer]
+              - button "On, extension enabled" [pressed] [ref=e80] [cursor=pointer]
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - img [ref=e87]
+              - generic [ref=e88]:
+                - generic [ref=e90]:
+                  - heading "Google Docs Offline" [level=3] [ref=e91]
+                  - generic [ref=e92]: 1.107.1
+                - generic [ref=e93]: Edit, create, and view your documents, spreadsheets, and presentations — all without internet access.
+                - generic [ref=e94]: "ID: ghbmnnjooekpmoecnnnilnnbdlolhkhi"
+                - generic [ref=e96]:
+                  - generic [ref=e97]: Inspect views
+                  - link "service worker (Inactive)" [ref=e98] [cursor=pointer]
+            - generic [ref=e99]:
+              - generic [ref=e100]:
+                - button "Details" [ref=e101] [cursor=pointer]:
+                  - generic [ref=e102]:
+                    - generic: Details
+                - button "Remove" [ref=e103] [cursor=pointer]:
+                  - generic [ref=e104]:
+                    - generic: Remove
+              - button "On, extension enabled" [pressed] [ref=e105] [cursor=pointer]
+  - alert [ref=e113]:
+    - generic [ref=e114]: Reloaded

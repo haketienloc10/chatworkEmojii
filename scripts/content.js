@@ -202,14 +202,27 @@ function getCurrentRoomId() {
     return pathMatch ? pathMatch[1] : "";
 }
 
+function isValidDirectUploadUrl(url) {
+    if (typeof url !== "string") return false;
+
+    try {
+        return new URL(url).pathname.toLowerCase() === "/gateway/upload_file.php";
+    } catch (_error) {
+        return url.toLowerCase().split("?")[0].endsWith("/gateway/upload_file.php");
+    }
+}
+
 function getChatworkUploadConfig() {
     return chrome.storage.local.get(CHATWORK_UPLOAD_CONFIG_KEY).then((res) => {
         const config = res[CHATWORK_UPLOAD_CONFIG_KEY];
-        if (!config || typeof config !== "object") {
+        if (!config || typeof config !== "object" || !isValidDirectUploadUrl(config.url)) {
+            const fields = config && config.fields && typeof config.fields === "object"
+                ? config.fields
+                : {};
             return {
                 url: CHATWORK_DEFAULT_UPLOAD_URL,
                 method: "POST",
-                fields: {},
+                fields: typeof fields._t === "string" ? { _t: fields._t } : {},
                 fileField: "file",
             };
         }
