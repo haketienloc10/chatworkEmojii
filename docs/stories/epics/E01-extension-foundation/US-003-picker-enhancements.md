@@ -27,6 +27,7 @@ The sticker picker panel must support tabs (All, Recent, Favorite), keyboard nav
 - [x] Random button picks a sticker from the currently active tab, inserts it, and closes the panel.
 - [x] Images load lazily (only when in/near viewport).
 - [x] Broken images render a disabled placeholder instead of broken image icon or alt text.
+- [x] Hovering and scaling a sticker does not change the grid column count or make tiles jump between rows.
 - [x] The automated test suite runs successfully with `npm run test` or a custom test script.
 - [x] `npm run validate` runs successfully without any errors or warnings.
 
@@ -56,8 +57,9 @@ None.
 
 ## Evidence
 
-- Node-based test runner (`npm run test`) successfully passes 50/50 tests (100% success rate).
+- Node-based test runner (`npm run test`) successfully passes 64/64 tests (100% success rate).
 - Validations (`npm run validate`) pass with clean status.
+- Hover overflow is isolated horizontally, scrollbar space remains stable, and
+  scaling is driven by the fixed-size tile hover state.
 - Forensic Auditor audit report executed under `.agents/auditor/audit_report.md` reports verdict CLEAN.
 - Verification command configured and verified with `_harness/bin/harness-cli story verify US-003-picker-enhancements`.
-

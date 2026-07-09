@@ -31,12 +31,23 @@ stickers without covering the main chat history like a centered modal.
 - `Esc` closes the picker and outside click still closes it.
 - Sticker insertion still appends the selected preview markup to Chatwork input.
 - Existing broken-image placeholder behavior remains intact.
+- The first 20 sticker images are preloaded before the picker opens.
+- Remaining images are requested only when they enter or approach the visible
+  grid viewport, with at most five image requests active concurrently.
+- A loading indicator is shown while each image is queued or loading.
+- Broken sticker IDs persist across page refreshes and are cleared only by an
+  explicit cache clear or data reload.
 
 ## Design Notes
 
 - UI surface: Chrome MV3 content script on `www.chatwork.com`.
 - Data source: normalized sticker records already produced by US-001.
-- Persistence: none in this slice; favorites/recent remain future Phase 2 work.
+- Persistence: broken preview IDs are retained across page refreshes; favorite
+  and recent persistence is covered by the picker-enhancements story.
+- Image loading: a five-request queue prioritizes the first 20 stickers, then
+  receives additional work from a grid-rooted `IntersectionObserver`.
+- Broken image state is stored in `chrome.storage.local` under
+  `sticker_broken_preview_ids_v1`.
 
 ## Validation
 
@@ -57,6 +68,15 @@ None expected.
 
 ## Evidence
 
+- 2026-07-09 image-loading follow-up: the first 20 stickers are queued before
+  open, later stickers are scheduled by a grid-rooted `IntersectionObserver`,
+  and the shared queue is capped at five active image requests.
+- Loading tiles show an animated indicator; failed preview IDs persist in
+  `chrome.storage.local` and explicit clear/reload actions remove that state.
+- `npm test` passed 68/68, including preload scheduling, loading indicator,
+  concurrency limit, viewport observation, and broken-ID persistence coverage.
+- `npm run validate` passed; data validation checked 158 items across 7 files
+  with the existing suspicious external URL warning.
 - 2026-07-09 follow-up: opening the picker now only changes visibility and
   position; automated regression coverage verifies tile identity is preserved
   across close/open and the panel left edge anchors to the sticker button.

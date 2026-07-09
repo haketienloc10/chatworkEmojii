@@ -1,5 +1,6 @@
 const POPUP_STORAGE_KEYS = ["sticker_cache_v2", "sticker_favorites", "sticker_recents", "sticker_imported_v1"];
 const POPUP_IMPORTED_STICKERS_KEY = "sticker_imported_v1";
+const POPUP_BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const POPUP_CHATWORK_ORIGIN = "https://www.chatwork.com/";
 
 function countArray(value) {
@@ -95,7 +96,7 @@ function sendActiveTabMessage(message) {
 
 function clearStickerCache() {
     setStatus("Clearing sticker cache...");
-    return chrome.storage.local.remove("sticker_cache_v2")
+    return chrome.storage.local.remove(["sticker_cache_v2", POPUP_BROKEN_STICKERS_KEY])
         .then(() => sendActiveTabMessage({ action: "clear_sticker_cache" }))
         .then((result) => refreshDashboard().then(() => result))
         .then((result) => {

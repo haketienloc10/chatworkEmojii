@@ -244,6 +244,9 @@ class MockNode {
   set src(val) {
     this._src = String(val);
     this.setAttribute('src', this._src);
+    if (this.tagName === 'IMG' && typeof this.simulateLoad === 'function') {
+      setTimeout(() => this.simulateLoad(), 0);
+    }
   }
 
   get alt() {
@@ -458,7 +461,7 @@ class IntersectionObserver {
     }, 0);
   }
   unobserve(element) {
-    this.observedElements.push(element);
+    this.observedElements = this.observedElements.filter((item) => item !== element);
   }
   disconnect() {
     this.observedElements = [];
@@ -715,6 +718,8 @@ function resetDOM() {
     global.brokenStickerPreviewIds.clear();
   }
   global.currentStickers = [];
+  global.activeStickerImageLoads = 0;
+  global.maxObservedStickerImageLoads = 0;
 }
 
 // 10. Simulate keydowns

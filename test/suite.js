@@ -278,10 +278,24 @@ test('Feature 2: Outside click closes panel', async () => {
 
 // --- FEATURE 3: RANDOM STICKER INSERTION ---
 
-test('Feature 3: Random button presence and visibility', async () => {
+test('Feature 3: Picker controls use accessible icons without a close button', async () => {
   await openPanel();
+  const controls = [
+    document.querySelector(".sticker-tab-all"),
+    document.querySelector(".sticker-tab-recent"),
+    document.querySelector(".sticker-tab-favorite"),
+    document.querySelector(".sticker-random-button")
+  ];
+
+  controls.forEach((control) => {
+    assert.ok(control, "Each picker control should be present");
+    assert.ok(control.innerHTML.includes("<svg"), "Each picker control should render an SVG icon");
+    assert.ok(control.getAttribute("aria-label"), "Each icon control should have an accessible label");
+  });
+
   const randomBtn = document.querySelector(".sticker-random-button");
-  assert.ok(randomBtn, "Random button should be present in panel");
+  assert.equal(randomBtn.title, "Random");
+  assert.equal(document.querySelector(".sticker-close-button"), null, "Redundant close button should be removed");
 });
 
 test('Feature 3: Picking and inserting random sticker from All tab', async () => {
@@ -340,12 +354,12 @@ test('Feature 3: Random button closes panel after insertion', async () => {
 
 // --- FEATURE 4: LAZY LOADING & IMAGE ERROR ---
 
-test('Feature 4: Lazy loading attribute on images', async () => {
+test('Feature 4: Observed images load immediately after entering the viewport queue', async () => {
   await openPanel();
   const tiles = getVisibleTiles();
   const img = tiles[0].querySelector("img");
   assert.ok(img, "Tile should contain an image element");
-  assert.equal(img.getAttribute("loading"), "lazy", "Sticker images must load lazily");
+  assert.equal(img.getAttribute("loading"), "eager", "IntersectionObserver already controls deferred loading");
 });
 
 test('Feature 4: Broken image triggers error handler', async () => {
@@ -382,6 +396,41 @@ test('Feature 4: Lazy loading IntersectionObserver integration', () => {
   assert.ok(global.IntersectionObserver, "IntersectionObserver must be mocked");
   const observer = new global.IntersectionObserver(() => {});
   assert.ok(typeof observer.observe === "function", "Observer must have observe function");
+});
+
+test('Feature 4: Preloads the first 20 images and defers the rest to viewport observation', async () => {
+  const tiles = getAllTiles();
+  assert.ok(tiles.length > 20, "Test data should contain more than 20 stickers");
+
+  await new Promise(resolve => setTimeout(resolve, 20));
+
+  const firstTwenty = tiles.slice(0, 20);
+  firstTwenty.forEach((tile) => {
+    assert.ok(
+      ["queued", "loading", "loaded"].includes(tile.dataset.imageState),
+      "The first 20 stickers should be scheduled without opening the picker"
+    );
+  });
+});
+
+test('Feature 4: Shows a loading icon while an image request is pending', () => {
+  const tile = document.createElement("button");
+  tile.dataset.imageState = "idle";
+  document.body.appendChild(tile);
+
+  global.queueStickerImage(tile, {
+    previewId: "pending-image",
+    url: "https://www.chatwork.com/pending-image",
+  }, -1);
+
+  assert.ok(tile.querySelector(".sticker-loading"), "Pending image should render a loading icon");
+});
+
+test('Feature 4: Image queue never exceeds five concurrent requests', () => {
+  assert.ok(
+    global.maxObservedStickerImageLoads <= 5,
+    `Expected at most 5 active image requests, got ${global.maxObservedStickerImageLoads}`
+  );
 });
 
 test('Feature 4: Broken images are excluded from next render', async () => {
@@ -573,7 +622,8 @@ test('Boundary 3: Random selection when all stickers are broken', async () => {
   
   // Mark all visible tiles as broken
   tiles.forEach(tile => {
-    tile.querySelector("img").simulateError();
+    const sticker = global.currentStickers.find((item) => item.previewId === tile.dataset.previewId);
+    global.markStickerAsBroken(tile, sticker);
   });
   
   clearChat();
@@ -627,6 +677,22 @@ test('Boundary 4: brokenStickerPreviewIds persistence across panel toggle', asyn
   
   const activeTiles = getVisibleTiles();
   assert.ok(!activeTiles.some(t => t.dataset.previewId === previewId), "Should remain excluded on open");
+});
+
+test('Boundary 4: Broken preview IDs persist in chrome storage', async () => {
+  await openPanel();
+  const firstTile = getVisibleTiles()[0];
+  const previewId = firstTile.dataset.previewId;
+  const sticker = global.currentStickers.find((item) => item.previewId === previewId);
+
+  global.markStickerAsBroken(firstTile, sticker);
+  await new Promise(resolve => setTimeout(resolve, 10));
+
+  const stored = await chrome.storage.local.get("sticker_broken_preview_ids_v1");
+  assert.ok(
+    stored.sticker_broken_preview_ids_v1.includes(previewId),
+    "Broken preview ID should survive a page refresh through chrome.storage.local"
+  );
 });
 
 test('Boundary 4: Broken image elements replaced completely', async () => {

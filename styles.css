@@ -40,22 +40,6 @@
     box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.16);
 }
 
-.sticker-close-button {
-    width: 32px;
-    height: 32px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: #f3f4f6;
-    color: #374151;
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 1;
-}
-
-.sticker-close-button:hover {
-    background: #e5e7eb;
-}
-
 .sticker-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
@@ -63,11 +47,16 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
     overscroll-behavior: contain;
     padding-right: 2px;
 }
 
 .sticker-tile {
+    box-sizing: border-box;
+    position: relative;
+    z-index: 0;
     width: 56px;
     height: 56px;
     border: 1px solid transparent;
@@ -81,6 +70,7 @@
 }
 
 .sticker-tile:hover {
+    z-index: 1;
     border-color: #9ca3af;
     background: #ffffff;
 }
@@ -99,7 +89,28 @@
     transition: transform 0.2s;
 }
 
-.sticker-img:hover {
+.sticker-loading {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #dbe3ec;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: sticker-loading-spin 0.7s linear infinite;
+}
+
+@keyframes sticker-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sticker-loading {
+        animation-duration: 1.4s;
+    }
+}
+
+.sticker-tile:hover .sticker-img {
     transform: scale(1.4);
 }
 
@@ -134,65 +145,56 @@
     mix-blend-mode: difference;
 }
 
-.sticker-panel-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 8px;
-}
-
 .sticker-tabs-container {
     display: flex;
-    gap: 8px;
-    width: 100%;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    flex: 0 0 auto;
+    gap: 4px;
 }
 
-.sticker-tab {
-    flex: 1;
-    height: 28px;
+.sticker-tab,
+.sticker-random-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
     background: #f9fafb;
     color: #4b5563;
-    font-size: 12px;
     cursor: pointer;
-    font-weight: normal;
     outline: none;
-    transition: all 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.sticker-tab:hover {
+.sticker-tab svg,
+.sticker-random-button svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.sticker-tab:hover,
+.sticker-random-button:hover {
     background: #f3f4f6;
     color: #1f2937;
+    border-color: #d1d5db;
 }
 
 .sticker-tab.active {
     background: #3b82f6;
     color: white;
-    font-weight: bold;
     border-color: #3b82f6;
 }
 
 .sticker-random-button {
-    height: 32px;
-    padding: 0 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
     background: #ffffff;
-    color: #374151;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    outline: none;
-    transition: all 0.2s;
-}
-
-.sticker-random-button:hover {
-    background: #f9fafb;
-    border-color: #9ca3af;
 }
 
 .favorite-btn {
@@ -230,4 +232,3 @@
     background: #eff6ff;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
-

@@ -6,6 +6,7 @@ const CHATWORK_SELECTORS = {
 
 const STICKER_CACHE_KEY = "sticker_cache_v2";
 const LEGACY_STICKER_CACHE_KEY = "sticker_cache";
+const BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const IMPORTED_STICKERS_KEY = "sticker_imported_v1";
 const CHATWORK_UPLOAD_CONFIG_KEY = "chatwork_upload_config_v1";
 const CHATWORK_ORIGIN = "https://www.chatwork.com/";
@@ -15,6 +16,8 @@ const CHATWORK_STORAGE_UPLOAD_URL = "https://tky-chat-work-appdata.s3.ap-northea
 const STICKER_PANEL_WIDTH = 420;
 const STICKER_PANEL_MAX_HEIGHT = 420;
 const STICKER_PANEL_MARGIN = 12;
+const STICKER_PRELOAD_COUNT = 20;
+const STICKER_IMAGE_CONCURRENCY = 5;
 const UPLOAD_IMPORT_SOURCE = "chatwork-upload";
 const brokenStickerPreviewIds = new Set();
 let currentStickers = [];
@@ -23,6 +26,10 @@ let stickerSearchRenderTimer = null;
 let activeTab = "all";
 let favorites = new Set();
 let recents = [];
+let stickerImageObserver = null;
+let stickerImageQueue = [];
+let activeStickerImageLoads = 0;
+let stickerRenderGeneration = 0;
 
 
 function ready(callback) {
@@ -697,7 +704,7 @@ function setupKeyboardNavigation(stickerPanel) {
 function preloadStickerPanel() {
     if (document.querySelector("#stickerPanel")) return;
 
-    chrome.storage.local.get(["sticker_favorites", "sticker_recents"]).then((res) => {
+    chrome.storage.local.get(["sticker_favorites", "sticker_recents", BROKEN_STICKERS_KEY]).then((res) => {
         const storedFavs = res.sticker_favorites || [];
         favorites.clear();
         storedFavs.forEach((f) => favorites.add(f));
@@ -710,6 +717,10 @@ function preloadStickerPanel() {
         if (typeof global !== 'undefined') {
             global.recents = recents;
         }
+
+        brokenStickerPreviewIds.clear();
+        const storedBrokenIds = Array.isArray(res[BROKEN_STICKERS_KEY]) ? res[BROKEN_STICKERS_KEY] : [];
+        storedBrokenIds.forEach((previewId) => brokenStickerPreviewIds.add(String(previewId)));
 
         const stickerPanel = document.createElement("div");
         stickerPanel.id = "stickerPanel";
@@ -736,22 +747,44 @@ function preloadStickerPanel() {
 
         const tabsContainer = document.createElement("div");
         tabsContainer.className = "sticker-tabs-container";
-        const tabs = ["All", "Recent", "Favorite"];
-        tabs.forEach((tabName) => {
+        const tabs = [
+            {
+                name: "All",
+                icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>'
+            },
+            {
+                name: "Recent",
+                icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.34-5.66L4 8.68"></path><path d="M4 4v4.68h4.68M12 7.5V12l3 2"></path></svg>'
+            },
+            {
+                name: "Favorite",
+                icon: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.78 5.63 6.22.9-4.5 4.39 1.06 6.2L12 17.2l-5.56 2.92 1.06-6.2L3 9.53l6.22-.9L12 3Z"></path></svg>'
+            }
+        ];
+        tabs.forEach(({ name: tabName, icon }) => {
             const tabBtn = document.createElement("button");
             tabBtn.type = "button";
             tabBtn.className = `sticker-tab sticker-tab-${tabName.toLowerCase()}`;
-            tabBtn.textContent = tabName;
+            tabBtn.setAttribute("aria-label", `${tabName} stickers`);
+            tabBtn.title = tabName;
+            tabBtn.innerHTML = icon;
             if (tabName.toLowerCase() === activeTab) {
                 tabBtn.classList.add("active");
+                tabBtn.setAttribute("aria-pressed", "true");
+            } else {
+                tabBtn.setAttribute("aria-pressed", "false");
             }
             tabBtn.addEventListener("click", () => {
                 activeTab = tabName.toLowerCase();
                 if (typeof global !== 'undefined') {
                     global.activeTab = activeTab;
                 }
-                tabsContainer.querySelectorAll(".sticker-tab").forEach((btn) => btn.classList.remove("active"));
+                tabsContainer.querySelectorAll(".sticker-tab").forEach((btn) => {
+                    btn.classList.remove("active");
+                    btn.setAttribute("aria-pressed", "false");
+                });
                 tabBtn.classList.add("active");
+                tabBtn.setAttribute("aria-pressed", "true");
                 renderStickerResults(stickerPanel, currentStickers);
             });
             tabsContainer.appendChild(tabBtn);
@@ -760,7 +793,9 @@ function preloadStickerPanel() {
         const randomBtn = document.createElement("button");
         randomBtn.type = "button";
         randomBtn.className = "sticker-random-button";
-        randomBtn.textContent = "Random";
+        randomBtn.setAttribute("aria-label", "Insert random sticker");
+        randomBtn.title = "Random";
+        randomBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"></path></svg>';
         randomBtn.addEventListener("click", () => {
             const grid = stickerPanel.querySelector('[data-role="sticker-results"]');
             if (!grid) return;
@@ -780,16 +815,7 @@ function preloadStickerPanel() {
             }
         });
 
-        const closeButton = document.createElement("button");
-        closeButton.type = "button";
-        closeButton.className = "sticker-close-button";
-        closeButton.setAttribute("aria-label", "Close sticker picker");
-        closeButton.textContent = "×";
-        closeButton.addEventListener("click", () => {
-            closeStickerPanel();
-        });
-
-        header.append(searchInput, tabsContainer, randomBtn, closeButton);
+        header.append(searchInput, tabsContainer, randomBtn);
 
         const resultGrid = document.createElement("div");
         resultGrid.className = "sticker-grid";
@@ -813,6 +839,14 @@ function preloadStickerPanel() {
 function renderStickerResults(stickerPanel, stickers) {
     const resultGrid = stickerPanel.querySelector('[data-role="sticker-results"]');
     if (!resultGrid) return;
+
+    stickerRenderGeneration += 1;
+    const renderGeneration = stickerRenderGeneration;
+    stickerImageQueue = stickerImageQueue.filter((job) => job.generation === renderGeneration);
+    if (stickerImageObserver) {
+        stickerImageObserver.disconnect();
+        stickerImageObserver = null;
+    }
 
     resultGrid.replaceChildren();
 
@@ -838,8 +872,29 @@ function renderStickerResults(stickerPanel, stickers) {
         return;
     }
 
-    availableStickers.forEach((sticker) => {
-        resultGrid.appendChild(createStickerTile(sticker));
+    if (typeof IntersectionObserver === "function") {
+        stickerImageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                observer.unobserve(entry.target);
+                queueStickerImage(entry.target, entry.target._stickerData, renderGeneration);
+            });
+        }, {
+            root: resultGrid,
+            rootMargin: "120px 0px",
+            threshold: 0.01,
+        });
+    }
+
+    availableStickers.forEach((sticker, index) => {
+        const tile = createStickerTile(sticker);
+        resultGrid.appendChild(tile);
+
+        if (index < STICKER_PRELOAD_COUNT || !stickerImageObserver) {
+            queueStickerImage(tile, sticker, renderGeneration);
+        } else {
+            stickerImageObserver.observe(tile);
+        }
     });
 
     if (stickerPanel.style.display !== "none") {
@@ -867,20 +922,10 @@ function createStickerTile(sticker) {
     tile.type = "button";
     tile.className = "sticker-tile";
     tile.dataset.previewId = sticker.previewId;
+    tile.dataset.imageState = "idle";
     tile.title = sticker.name;
     tile.style.position = "relative";
-
-    const image = document.createElement("img");
-    image.src = sticker.url;
-    image.alt = "";
-    image.loading = "lazy";
-    image.className = "sticker-img";
-
-    image.addEventListener("error", () => {
-        markStickerAsBroken(tile, sticker);
-    }, { once: true });
-
-    tile.appendChild(image);
+    tile._stickerData = sticker;
 
     const favBtn = document.createElement("button");
     favBtn.type = "button";
@@ -924,9 +969,84 @@ function createStickerTile(sticker) {
     return tile;
 }
 
+function createStickerLoadingIndicator() {
+    const loading = document.createElement("span");
+    loading.className = "sticker-loading";
+    loading.setAttribute("aria-hidden", "true");
+    return loading;
+}
+
+function queueStickerImage(tile, sticker, generation) {
+    if (!tile || !sticker || tile.dataset.imageState !== "idle") return;
+
+    tile.dataset.imageState = "queued";
+    tile.appendChild(createStickerLoadingIndicator());
+    stickerImageQueue.push({ tile, sticker, generation });
+    drainStickerImageQueue();
+}
+
+function drainStickerImageQueue() {
+    while (activeStickerImageLoads < STICKER_IMAGE_CONCURRENCY && stickerImageQueue.length > 0) {
+        const job = stickerImageQueue.shift();
+        if (!job || job.generation !== stickerRenderGeneration || !job.tile.parentNode) {
+            continue;
+        }
+
+        activeStickerImageLoads += 1;
+        if (typeof global !== "undefined") {
+            global.activeStickerImageLoads = activeStickerImageLoads;
+            global.maxObservedStickerImageLoads = Math.max(
+                global.maxObservedStickerImageLoads || 0,
+                activeStickerImageLoads
+            );
+        }
+        loadStickerImage(job).finally(() => {
+            activeStickerImageLoads -= 1;
+            if (typeof global !== "undefined") {
+                global.activeStickerImageLoads = activeStickerImageLoads;
+            }
+            drainStickerImageQueue();
+        });
+    }
+}
+
+function loadStickerImage({ tile, sticker, generation }) {
+    tile.dataset.imageState = "loading";
+
+    return new Promise((resolve) => {
+        const image = document.createElement("img");
+        image.alt = "";
+        image.loading = "eager";
+        image.className = "sticker-img";
+
+        image.addEventListener("load", () => {
+            if (generation === stickerRenderGeneration && tile.parentNode && !tile.disabled) {
+                const loading = tile.querySelector(".sticker-loading");
+                if (loading) loading.remove();
+                tile.appendChild(image);
+                tile.dataset.imageState = "loaded";
+            }
+            resolve();
+        }, { once: true });
+
+        image.addEventListener("error", () => {
+            if (generation === stickerRenderGeneration && tile.parentNode) {
+                markStickerAsBroken(tile, sticker);
+            }
+            resolve();
+        }, { once: true });
+
+        image.src = sticker.url;
+    });
+}
+
 function markStickerAsBroken(tile, sticker) {
     brokenStickerPreviewIds.add(sticker.previewId);
+    chrome.storage.local.set({
+        [BROKEN_STICKERS_KEY]: Array.from(brokenStickerPreviewIds),
+    });
     tile.disabled = true;
+    tile.dataset.imageState = "broken";
     tile.classList.add("is-broken");
     tile.replaceChildren();
 
@@ -1096,7 +1216,7 @@ function observeChatContent() {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.action === "clear_sticker_cache") {
-        chrome.storage.local.remove(STICKER_CACHE_KEY).then(() => {
+        chrome.storage.local.remove([STICKER_CACHE_KEY, BROKEN_STICKERS_KEY]).then(() => {
             localStorage.removeItem(STICKER_CACHE_KEY);
             localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
             brokenStickerPreviewIds.clear();
@@ -1107,7 +1227,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
 
     if (message.action === "reload_sticker_data") {
-        chrome.storage.local.remove(STICKER_CACHE_KEY).then(() => {
+        chrome.storage.local.remove([STICKER_CACHE_KEY, BROKEN_STICKERS_KEY]).then(() => {
             localStorage.removeItem(STICKER_CACHE_KEY);
             localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
             brokenStickerPreviewIds.clear();
@@ -1145,4 +1265,6 @@ if (typeof global !== "undefined") {
     global.buildSignedUploadInfoRequest = buildSignedUploadInfoRequest;
     global.buildUploadedStickerFromFileId = buildUploadedStickerFromFileId;
     global.uploadChatworkStickerFile = uploadChatworkStickerFile;
+    global.queueStickerImage = queueStickerImage;
+    global.drainStickerImageQueue = drainStickerImageQueue;
 }
