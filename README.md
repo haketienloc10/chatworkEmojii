@@ -51,6 +51,21 @@ Click `Reload data` after changing files in `data/` while Chatwork is open.
 Click `Clear sticker cache` to remove cached sticker metadata and broken-image
 runtime state. Favorites and recents are kept.
 
+The popup can upload a new sticker through the active Chatwork tab:
+
+1. Open the Chatwork room where your session is active.
+2. Open the extension popup and choose an image file.
+3. Set `Name`, `Tags`, and `Pack`.
+4. Click `Upload sticker`.
+
+The extension observes Chatwork upload requests with `chrome.webRequest` and
+stores the latest upload endpoint/template in `chrome.storage.local` under
+`chatwork_upload_config_v1`. The popup sends the selected image to the content
+script, which uploads it to Chatwork with the active session, parses the
+returned `file_id`, saves the sticker under `sticker_imported_v1`, and reloads
+`sticker_cache_v2`. Normal use does not require editing `data/*.json` or
+`data/file_list.json`.
+
 The content script stores loaded sticker data in `chrome.storage.local` under
 `sticker_cache_v2`. Favorites and recents are also stored in
 `chrome.storage.local`.
@@ -75,7 +90,10 @@ The validator checks that:
 Warnings identify suspicious data that may still be intentional, such as old
 external image URLs. Errors should be fixed before release.
 
-## Add Stickers
+## Add Static Stickers
+
+Use this only for curated static packs. For normal Chatwork uploads, use the
+popup `Upload sticker` control.
 
 1. Add the sticker objects to a dated file in `data/`, or create a new dated
    file such as `YYYYMMDD.json`.

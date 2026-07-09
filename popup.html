@@ -60,6 +60,41 @@
             gap: 8px;
         }
 
+        .import-panel {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .field {
+            display: grid;
+            gap: 4px;
+        }
+
+        label {
+            color: #4b5563;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 7px 8px;
+            color: #111827;
+            font: inherit;
+            font-size: 12px;
+        }
+
+        textarea {
+            min-height: 54px;
+            resize: vertical;
+        }
+
         button {
             min-height: 34px;
             padding: 8px 10px;
@@ -126,10 +161,33 @@
             <span class="stat-label">Recent</span>
             <span class="stat-value" id="recentCount">-</span>
         </div>
+        <div class="stat">
+            <span class="stat-label">Imported</span>
+            <span class="stat-value" id="importedCount">-</span>
+        </div>
     </div>
     <div class="actions">
         <button id="reloadStickerData" class="primary" type="button">Reload data</button>
         <button id="clearStickerCache" class="danger" type="button">Clear sticker cache</button>
+    </div>
+    <div class="import-panel" aria-label="Upload sticker">
+        <div class="field">
+            <label for="uploadFile">Image file</label>
+            <input id="uploadFile" type="file" accept="image/*">
+        </div>
+        <div class="field">
+            <label for="importName">Name</label>
+            <input id="importName" type="text" placeholder="Uploaded sticker">
+        </div>
+        <div class="field">
+            <label for="importTags">Tags</label>
+            <input id="importTags" type="text" placeholder="tag1, tag2">
+        </div>
+        <div class="field">
+            <label for="importPack">Pack</label>
+            <input id="importPack" type="text" placeholder="upload-20260708">
+        </div>
+        <button id="uploadSticker" class="primary" type="button">Upload sticker</button>
     </div>
     <p id="popupStatus" role="status">Loading dashboard...</p>
 

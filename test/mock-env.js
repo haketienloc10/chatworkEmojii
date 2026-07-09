@@ -494,6 +494,10 @@ const windowListeners = {};
 const windowMock = {
   innerWidth: 1024,
   innerHeight: 768,
+  location: {
+    href: 'https://www.chatwork.com/#!rid232079630',
+    hash: '#!rid232079630'
+  },
   addEventListener(type, listener) {
     if (!windowListeners[type]) windowListeners[type] = [];
     windowListeners[type].push(listener);
@@ -585,6 +589,22 @@ const chromeMock = {
     sendMessage(message, callback) {
       const responseCallback = callback || (() => {});
       chromeMock.runtime.onMessage._trigger(message, {}, responseCallback);
+    }
+  },
+  webRequest: {
+    onBeforeRequest: {
+      listeners: [],
+      addListener(listener, filter, extraInfoSpec) {
+        this.listeners.push({ listener, filter, extraInfoSpec });
+      },
+      removeListener(listener) {
+        this.listeners = this.listeners.filter(entry => entry.listener !== listener);
+      },
+      _trigger(details) {
+        for (const { listener } of this.listeners) {
+          listener(details);
+        }
+      }
     }
   },
   tabs: {

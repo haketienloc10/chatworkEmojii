@@ -207,9 +207,14 @@ Công việc:
   - Toggle quick reactions.
   - Export/import favorites.
 - Viết sticker import workflow.
-  - Paste danh sách Chatwork image URL.
-  - Tự sinh `previewId`, `id`, `url`, `height`.
-  - Chọn `pack`, `tags`, `name`.
+  - Theo dõi request upload của Chatwork bằng network observation để học
+    endpoint/payload upload hiện tại.
+  - Cho phép chọn file trong popup và upload ảnh lên Chatwork bằng session tab
+    đang mở.
+  - Parse `file_id` từ response, sinh `previewId`, `id`, `url`, `height`,
+    `pack`, `tags`, `name`.
+  - Lưu vào extension storage và reload picker, không bắt user tự upload trước
+    hoặc sửa `data/*.json` / `data/file_list.json` cho từng ảnh.
 - Nâng cấp `getImage.js`.
   - Từ script debug thành tool có hướng dẫn rõ.
   - Scan ảnh trong Chatwork room hiện tại.
@@ -227,7 +232,8 @@ Công việc:
 
 Tiêu chí hoàn thành:
 
-- Thêm pack mới không cần sửa tay nhiều file.
+- Upload ảnh mới từ extension không cần upload tay qua Chatwork UI hoặc sửa
+  nhiều file.
 - Có report rõ trước khi release nếu sticker chết.
 - Popup extension trở thành nơi điều khiển có ích, không chỉ là nút clear cache.
 

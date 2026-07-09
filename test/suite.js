@@ -635,9 +635,23 @@ test('Boundary 4: Loading stickers fetch error recovery', async () => {
 // --- FEATURE 5: POPUP DASHBOARD ---
 
 function mountPopupDashboard() {
-  const ids = ["stickerCount", "cacheState", "favoriteCount", "recentCount", "popupStatus"];
+  const ids = [
+    "stickerCount",
+    "cacheState",
+    "favoriteCount",
+    "recentCount",
+    "importedCount",
+    "popupStatus",
+    "uploadFile",
+    "importName",
+    "importTags",
+    "importPack"
+  ];
   ids.forEach((id) => {
-    const node = document.createElement(id === "popupStatus" ? "p" : "span");
+    const inputIds = ["uploadFile", "importName", "importTags", "importPack"];
+    const node = document.createElement(
+      id === "popupStatus" ? "p" : inputIds.includes(id) ? "input" : "span"
+    );
     node.id = id;
     document.body.appendChild(node);
   });
@@ -647,19 +661,22 @@ test('Feature 5: Popup dashboard summarizes storage state', async () => {
   await chrome.storage.local.set({
     sticker_cache_v2: [{ previewId: "1" }, { previewId: "2" }],
     sticker_favorites: ["1"],
-    sticker_recents: [{ previewId: "2" }]
+    sticker_recents: [{ previewId: "2" }],
+    sticker_imported_v1: [{ previewId: "3" }]
   });
 
   const summary = global.summarizeDashboard(await chrome.storage.local.get([
     "sticker_cache_v2",
     "sticker_favorites",
-    "sticker_recents"
+    "sticker_recents",
+    "sticker_imported_v1"
   ]));
 
   assert.deepEqual(summary, {
     stickerCount: 2,
     favoriteCount: 1,
     recentCount: 1,
+    importedCount: 1,
     cacheState: "Ready"
   });
 });
@@ -669,7 +686,8 @@ test('Feature 5: Popup dashboard renders counts', async () => {
   await chrome.storage.local.set({
     sticker_cache_v2: [{ previewId: "1" }],
     sticker_favorites: ["1", "2"],
-    sticker_recents: [{ previewId: "3" }]
+    sticker_recents: [{ previewId: "3" }],
+    sticker_imported_v1: [{ previewId: "4" }]
   });
 
   await global.refreshDashboard();
@@ -678,6 +696,7 @@ test('Feature 5: Popup dashboard renders counts', async () => {
   assert.equal(document.querySelector("#cacheState").textContent, "Ready");
   assert.equal(document.querySelector("#favoriteCount").textContent, "2");
   assert.equal(document.querySelector("#recentCount").textContent, "1");
+  assert.equal(document.querySelector("#importedCount").textContent, "1");
 });
 
 test('Feature 5: Popup clear cache keeps favorites and recents', async () => {
@@ -713,6 +732,314 @@ test('Feature 5: Popup reload data refreshes sticker cache count', async () => {
   assert.ok(storage.sticker_cache_v2.length > 0, "Reload should load sticker data");
   assert.equal(document.querySelector("#stickerCount").textContent, String(storage.sticker_cache_v2.length));
   assert.ok(document.querySelector("#popupStatus").textContent.includes("Sticker data reloaded"));
+});
+
+test('Feature 6: Content script extracts file_id from Chatwork upload responses', () => {
+  assert.equal(global.extractFileIdFromUploadResponse({ file_id: 9876543210 }), '9876543210');
+  assert.equal(global.extractFileIdFromUploadResponse({ result: { fileId: '9876543211' } }), '9876543211');
+  assert.equal(global.extractFileIdFromUploadResponse('{"file_id":"9876543212"}'), '9876543212');
+  assert.equal(global.extractFileIdFromUploadResponse('[preview id=9876543213 ht=150]'), '9876543213');
+});
+
+test('Feature 6: Content script builds upload request from observed network config', async () => {
+  await chrome.storage.local.set({
+    chatwork_upload_config_v1: {
+      url: 'https://www.chatwork.com/gateway/upload_file.php?preview=1',
+      method: 'POST',
+      fields: { room_id: 'old-room', token: 'abc' },
+      fileField: 'upload_file'
+    }
+  });
+
+  const config = (await chrome.storage.local.get('chatwork_upload_config_v1')).chatwork_upload_config_v1;
+  const request = global.buildChatworkUploadRequest(config, {
+    name: 'sticker.gif',
+    type: 'image/gif',
+    dataUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+  });
+
+  assert.equal(request.url, 'https://www.chatwork.com/gateway/upload_file.php?preview=1');
+  assert.equal(request.options.method, 'POST');
+  assert.ok(request.options.body, "Upload request should contain FormData body");
+  assert.equal(request.options.credentials, 'include');
+});
+
+test('Feature 6: Popup uploads selected sticker through active Chatwork tab', async () => {
+  mountPopupDashboard();
+  await openPanel();
+
+  document.querySelector("#importName").value = 'New upload';
+  document.querySelector("#importTags").value = 'upload';
+  document.querySelector("#importPack").value = 'upload-test';
+
+  const originalFetch = global.fetch;
+  global.fetch = (url, options) => {
+    if (String(url).startsWith('chrome-extension://')) {
+      return originalFetch(url, options);
+    }
+    assert.equal(url, 'https://www.chatwork.com/gateway/upload_file.php');
+    assert.equal(options.method, 'POST');
+    assert.equal(options.credentials, 'include');
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      text: () => Promise.resolve('{"file_id":"9876543210"}')
+    });
+  };
+
+  const result = await global.uploadStickerFilePayloadFromPopup({
+    name: 'sticker.gif',
+    type: 'image/gif',
+    dataUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+  }, {
+    name: 'New upload',
+    tags: ['upload'],
+    pack: 'upload-test'
+  });
+  global.fetch = originalFetch;
+
+  const storage = await chrome.storage.local.get(["sticker_imported_v1", "sticker_cache_v2"]);
+
+  assert.ok(result.ok, "Import should succeed");
+  assert.equal(storage.sticker_imported_v1[0].previewId, '9876543210');
+  assert.ok(storage.sticker_cache_v2.some(s => s.previewId === '9876543210'), "Reloaded cache should include imported sticker");
+  assert.ok(document.querySelector("#popupStatus").textContent.includes("Uploaded sticker 9876543210"));
+});
+
+test('Feature 6: Popup upload uses Chatwork signed storage flow when token is observed', async () => {
+  mountPopupDashboard();
+  await openPanel();
+  await chrome.storage.local.set({
+    chatwork_upload_config_v1: {
+      url: 'https://www.chatwork.com/gateway/upload_file.php',
+      method: 'POST',
+      fields: { _t: 'token-123' },
+      fileField: 'file'
+    }
+  });
+
+  const calls = [];
+  const originalFetch = global.fetch;
+  global.fetch = (url, options = {}) => {
+    const textUrl = String(url);
+    if (textUrl.startsWith('chrome-extension://')) {
+      return originalFetch(url, options);
+    }
+
+    calls.push({ url: textUrl, options });
+
+    if (textUrl.includes('get_upload_file_info_sig_v4.php')) {
+      assert.ok(String(options.body).includes('pdata='), "Signed upload info should send pdata");
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: () => Promise.resolve(JSON.stringify({
+          status: { success: true },
+          result: {
+            upload_info: [{
+              acl: 'private',
+              policy: 'policy',
+              algorithm: 'AWS4-HMAC-SHA256',
+              credential: 'credential',
+              signature: 'signature',
+              date: '20260708T000000Z',
+              disposition: "attachment;filename*=UTF-8''signed.gif",
+              redirect: 'gateway.php?cmd=upload_file_finish&room_id=232079630&file_id=5550002223&filename=signed.gif&extension=gif',
+              uri: 'uploadfile/232079/232079630/signed.dat',
+              auth_token: 'security-token'
+            }]
+          }
+        }))
+      });
+    }
+
+    if (textUrl === 'https://tky-chat-work-appdata.s3.ap-northeast-1.amazonaws.com/') {
+      assert.equal(options.method, 'POST');
+      assert.ok(options.body, "Storage upload should send FormData");
+      return Promise.resolve({
+        ok: true,
+        status: 204,
+        statusText: 'No Content',
+        text: () => Promise.resolve('')
+      });
+    }
+
+    if (textUrl.includes('upload_file_finish.php')) {
+      assert.equal(options.method, 'POST');
+      assert.ok(String(options.body).includes('pdata='), "Upload finish should send pdata");
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: () => Promise.resolve(JSON.stringify({ status: { success: true }, result: {} }))
+      });
+    }
+
+    throw new Error(`Unexpected fetch ${textUrl}`);
+  };
+
+  const result = await global.uploadStickerFilePayloadFromPopup({
+    name: 'signed.gif',
+    type: 'image/gif',
+    dataUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+  }, {
+    name: 'Signed upload',
+    tags: ['signed'],
+    pack: 'upload-test'
+  });
+  global.fetch = originalFetch;
+
+  const storage = await chrome.storage.local.get(["sticker_imported_v1", "sticker_cache_v2"]);
+
+  assert.ok(result.ok, "Signed import should succeed");
+  assert.equal(storage.sticker_imported_v1[0].previewId, '5550002223');
+  assert.ok(storage.sticker_cache_v2.some(s => s.previewId === '5550002223'), "Reloaded cache should include signed imported sticker");
+  assert.equal(calls.length, 3, "Signed upload should call info, storage, and finish endpoints");
+});
+
+test('Feature 6: Background observer ignores non-upload file query requests', async () => {
+  chrome.webRequest.onBeforeRequest._trigger({
+    method: "POST",
+    url: "https://www.chatwork.com/gateway/get_room_info.php?load_file_version=2",
+    requestBody: {
+      formData: {
+        pdata: ['{"_t":"room-token"}']
+      }
+    }
+  });
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  let storage = await chrome.storage.local.get("chatwork_upload_config_v1");
+  assert.equal(storage.chatwork_upload_config_v1.url, "https://www.chatwork.com/gateway/upload_file.php");
+  assert.equal(storage.chatwork_upload_config_v1.fields._t, "room-token");
+  assert.equal(storage.chatwork_upload_config_v1.fileField, "file");
+
+  chrome.webRequest.onBeforeRequest._trigger({
+    method: "POST",
+    url: "https://www.chatwork.com/gateway/upload_file.php?preview=1",
+    requestBody: {
+      formData: {
+        room_id: ["111"],
+        token: ["network-token"],
+        upload_file: [""]
+      }
+    }
+  });
+
+  storage = await chrome.storage.local.get("chatwork_upload_config_v1");
+  assert.equal(storage.chatwork_upload_config_v1.url, "https://www.chatwork.com/gateway/upload_file.php?preview=1");
+  assert.equal(storage.chatwork_upload_config_v1.fileField, "upload_file");
+  assert.equal(storage.chatwork_upload_config_v1.fields.token, "network-token");
+});
+
+test('Feature 6: Upload import rejects duplicate uploaded sticker', async () => {
+  mountPopupDashboard();
+  await chrome.storage.local.set({
+    sticker_cache_v2: [{
+      previewId: "9876543210",
+      id: "[preview id=9876543210 ht=150]",
+      url: "https://www.chatwork.com/gateway/preview_file.php?bin=1&preview=1&file_id=9876543210"
+    }]
+  });
+
+  const originalFetch = global.fetch;
+  global.fetch = (url, options) => {
+    if (String(url).startsWith('chrome-extension://')) {
+      return originalFetch(url, options);
+    }
+    return Promise.resolve({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    text: () => Promise.resolve('{"file_id":"9876543210"}')
+    });
+  };
+
+  const result = await global.uploadStickerFilePayloadFromPopup({
+    name: 'sticker.gif',
+    type: 'image/gif',
+    dataUrl: 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
+  });
+  global.fetch = originalFetch;
+
+  assert.equal(result.ok, false);
+  assert.equal(result.error, "duplicate");
+  assert.ok(document.querySelector("#popupStatus").textContent.includes("already exists"));
+});
+
+test('Feature 6 E2E: Observed upload config imports sticker and picker can insert it', async () => {
+  mountPopupDashboard();
+  await openPanel();
+
+  chrome.webRequest.onBeforeRequest._trigger({
+    method: "POST",
+    url: "https://www.chatwork.com/gateway/upload_file.php?preview=1",
+    requestBody: {
+      formData: {
+        room_id: ["111"],
+        token: ["network-token"],
+        upload_file: [""]
+      }
+    }
+  });
+
+  const observed = (await chrome.storage.local.get("chatwork_upload_config_v1")).chatwork_upload_config_v1;
+  assert.equal(observed.url, "https://www.chatwork.com/gateway/upload_file.php?preview=1");
+  assert.equal(observed.fields.room_id, "111");
+  assert.equal(observed.fields.token, "network-token");
+  assert.equal(observed.fileField, "upload_file");
+
+  document.querySelector("#importName").value = "E2E upload";
+  document.querySelector("#importTags").value = "e2e, upload";
+  document.querySelector("#importPack").value = "upload-e2e";
+
+  const originalFetch = global.fetch;
+  global.fetch = (url, options) => {
+    if (String(url).startsWith("chrome-extension://")) {
+      return originalFetch(url, options);
+    }
+
+    assert.equal(url, "https://www.chatwork.com/gateway/upload_file.php?preview=1");
+    assert.equal(options.method, "POST");
+    assert.equal(options.credentials, "include");
+    assert.ok(options.body, "Upload should send a FormData body");
+
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: () => Promise.resolve('{"file_id":"5550001112"}')
+    });
+  };
+
+  const result = await global.uploadStickerFilePayloadFromPopup({
+    name: "e2e.gif",
+    type: "image/gif",
+    dataUrl: "data:image/gif;base64,R0lGODlhAQABAAAAACw="
+  });
+  global.fetch = originalFetch;
+
+  assert.ok(result.ok, "Popup upload should succeed");
+  assert.equal(result.sticker.previewId, "5550001112");
+
+  const storage = await chrome.storage.local.get(["sticker_imported_v1", "sticker_cache_v2"]);
+  assert.equal(storage.sticker_imported_v1[0].previewId, "5550001112");
+  assert.ok(storage.sticker_cache_v2.some(sticker => sticker.previewId === "5550001112"), "Imported sticker should be in cache");
+  assert.equal(document.querySelector("#importedCount").textContent, "1");
+  assert.ok(document.querySelector("#popupStatus").textContent.includes("Uploaded sticker 5550001112"));
+
+  closePanel();
+  await openPanel();
+  await triggerSearch("E2E upload");
+
+  const importedTile = getVisibleTiles().find(tile => tile.dataset.previewId === "5550001112");
+  assert.ok(importedTile, "Imported sticker should render in picker search results");
+
+  clearChat();
+  importedTile.click();
+  assert.equal(getChatValue().trim(), "[preview id=5550001112 ht=150]");
 });
 
 // ==========================================

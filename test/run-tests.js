@@ -69,15 +69,20 @@ contentScriptCode = contentScriptCode.replace(
 // Evaluate code in global context
 vm.runInThisContext(contentScriptCode);
 
-// 3. Load popup.js so popup dashboard helpers can be tested in the same mock context
+// 3. Load background.js in an isolated scope so service-worker listeners are registered.
+const backgroundScriptPath = path.resolve(__dirname, '../scripts/background.js');
+const backgroundScriptCode = fs.readFileSync(backgroundScriptPath, 'utf8');
+vm.runInThisContext(`(() => {\n${backgroundScriptCode}\n})();`);
+
+// 4. Load popup.js so popup dashboard helpers can be tested in the same mock context
 const popupScriptPath = path.resolve(__dirname, '../scripts/popup.js');
 const popupScriptCode = fs.readFileSync(popupScriptPath, 'utf8');
 vm.runInThisContext(popupScriptCode);
 
-// 4. Load suite.js which registers the tests
+// 5. Load suite.js which registers the tests
 require('./suite');
 
-// 5. Run tests sequentially
+// 6. Run tests sequentially
 async function runAllTests() {
   console.log(`\n==================================================`);
   console.log(`🚀 Starting Chatwork Sticker Extension E2E Test Suite`);
