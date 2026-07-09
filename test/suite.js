@@ -244,6 +244,27 @@ test('Feature 2: Closing panel on Escape', async () => {
   assert.equal(panel.style.display, "none", "Panel should be hidden on Escape");
 });
 
+test('Feature 2: Reopening panel preserves rendered sticker DOM', async () => {
+  await openPanel();
+  const firstTile = getAllTiles()[0];
+  assert.ok(firstTile, "Panel should contain a rendered sticker tile");
+
+  closePanel();
+  await openPanel();
+
+  assert.equal(getAllTiles()[0], firstTile, "Reopening should not recreate sticker tiles and images");
+});
+
+test('Feature 2: Panel left edge anchors to sticker button', async () => {
+  const button = document.querySelector("#_sticker");
+  button._rectLeft = 300;
+
+  await openPanel();
+
+  const panel = document.querySelector("#stickerPanel");
+  assert.equal(panel.style.left, "300px", "Panel should start at the sticker button left edge");
+});
+
 test('Feature 2: Outside click closes panel', async () => {
   await openPanel();
   const panel = document.querySelector("#stickerPanel");

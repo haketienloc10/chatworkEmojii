@@ -1014,7 +1014,6 @@ function toggleStickerPanel() {
         const shouldOpen = stickerPanel.style.display === "none";
         if (shouldOpen) {
             positionStickerPanel(stickerPanel);
-            renderStickerResults(stickerPanel, currentStickers);
             stickerPanel.style.display = "flex";
             requestAnimationFrame(() => {
                 positionStickerPanel(stickerPanel);
@@ -1048,7 +1047,7 @@ function positionStickerPanel(stickerPanel) {
     const openBelow = availableBelow >= 240 || availableBelow >= availableAbove;
     const panelMaxHeight = Math.max(220, Math.min(STICKER_PANEL_MAX_HEIGHT, openBelow ? availableBelow : availableAbove));
     const left = Math.min(
-        Math.max(STICKER_PANEL_MARGIN, buttonRect.left - panelWidth + buttonRect.width),
+        Math.max(STICKER_PANEL_MARGIN, buttonRect.left),
         window.innerWidth - panelWidth - STICKER_PANEL_MARGIN
     );
     const panelHeight = stickerPanel.offsetHeight || panelMaxHeight;

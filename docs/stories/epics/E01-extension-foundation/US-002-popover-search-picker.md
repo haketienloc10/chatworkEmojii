@@ -21,7 +21,10 @@ stickers without covering the main chat history like a centered modal.
 ## Acceptance Criteria
 
 - Picker opens as a popover positioned near the sticker toolbar button and
-  stays inside the viewport.
+  stays inside the viewport, with its left edge anchored to the button whenever
+  space permits.
+- Closing and reopening the picker preserves the rendered sticker DOM instead
+  of recreating every tile and image.
 - Picker includes a search input that filters by `name`, `tags`, `pack`,
   `previewId`, and `source`.
 - Search empty state is clear and does not expose preview markup or raw alt text.
@@ -54,6 +57,9 @@ None expected.
 
 ## Evidence
 
+- 2026-07-09 follow-up: opening the picker now only changes visibility and
+  position; automated regression coverage verifies tile identity is preserved
+  across close/open and the panel left edge anchors to the sticker button.
 - `npm run validate` passed.
 - `npm run validate:data` reported 157 sticker items across 6 files and 1
   suspicious external URL warning in `data/20241212.json[1]`.
