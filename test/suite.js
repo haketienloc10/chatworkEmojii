@@ -255,6 +255,55 @@ test('Feature 2: Reopening panel preserves rendered sticker DOM', async () => {
   assert.equal(getAllTiles()[0], firstTile, "Reopening should not recreate sticker tiles and images");
 });
 
+test('Feature 2: Switching tabs preserves loaded sticker tiles and images', async () => {
+  await openPanel();
+  await new Promise(resolve => setTimeout(resolve, 20));
+
+  const originalTile = getAllTiles().find(tile => tile.querySelector(".sticker-img"));
+  assert.ok(originalTile, "At least one sticker image should be loaded");
+  const originalImage = originalTile.querySelector(".sticker-img");
+
+  document.querySelector(".sticker-tab-recent").click();
+  document.querySelector(".sticker-tab-all").click();
+
+  const restoredTile = getAllTiles().find(tile => tile.dataset.previewId === originalTile.dataset.previewId);
+  assert.equal(restoredTile, originalTile, "Tab switching should reuse the cached tile");
+  assert.equal(restoredTile.querySelector(".sticker-img"), originalImage, "Tab switching should reuse the loaded image");
+  assert.equal(restoredTile.dataset.imageState, "loaded", "Loaded image state should be preserved");
+});
+
+test('Feature 2: Searching and clearing search preserves loaded sticker DOM', async () => {
+  await openPanel();
+  await new Promise(resolve => setTimeout(resolve, 20));
+
+  const originalTile = getAllTiles().find(tile => tile.querySelector(".sticker-img"));
+  assert.ok(originalTile, "At least one sticker image should be loaded");
+  const originalImage = originalTile.querySelector(".sticker-img");
+
+  await triggerSearch("xyz123nonsensequery");
+  await triggerSearch("");
+
+  const restoredTile = getAllTiles().find(tile => tile.dataset.previewId === originalTile.dataset.previewId);
+  assert.equal(restoredTile, originalTile, "Search filtering should reuse the cached tile");
+  assert.equal(restoredTile.querySelector(".sticker-img"), originalImage, "Search filtering should reuse the loaded image");
+});
+
+test('Feature 2: Toggling favorite preserves the current sticker DOM', async () => {
+  await openPanel();
+  await new Promise(resolve => setTimeout(resolve, 20));
+
+  const originalTile = getAllTiles().find(tile => tile.querySelector(".sticker-img"));
+  assert.ok(originalTile, "At least one sticker image should be loaded");
+  const originalImage = originalTile.querySelector(".sticker-img");
+
+  originalTile.querySelector(".favorite-btn").click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  const restoredTile = getAllTiles().find(tile => tile.dataset.previewId === originalTile.dataset.previewId);
+  assert.equal(restoredTile, originalTile, "Favorite updates should reuse the cached tile");
+  assert.equal(restoredTile.querySelector(".sticker-img"), originalImage, "Favorite updates should reuse the loaded image");
+});
+
 test('Feature 2: Panel left edge anchors to sticker button', async () => {
   const button = document.querySelector("#_sticker");
   button._rectLeft = 300;
@@ -789,6 +838,7 @@ test('Feature 5: Popup dashboard renders counts', async () => {
 test('Feature 5: Popup clear cache keeps favorites and recents', async () => {
   mountPopupDashboard();
   await openPanel();
+  const tileBeforeClear = getAllTiles()[0];
   await chrome.storage.local.set({
     sticker_favorites: ["fav-1"],
     sticker_recents: [{ previewId: "recent-1" }]
@@ -805,6 +855,7 @@ test('Feature 5: Popup clear cache keeps favorites and recents', async () => {
   assert.deepEqual(storage.sticker_favorites, ["fav-1"], "Favorites should remain");
   assert.deepEqual(storage.sticker_recents, [{ previewId: "recent-1" }], "Recents should remain");
   assert.equal(document.querySelector("#cacheState").textContent, "Empty");
+  assert.ok(getAllTiles()[0] !== tileBeforeClear, "Explicit cache clear should invalidate cached sticker tiles");
 });
 
 test('Feature 5: Popup reload data refreshes sticker cache count', async () => {

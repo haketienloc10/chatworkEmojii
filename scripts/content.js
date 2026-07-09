@@ -29,7 +29,8 @@ let recents = [];
 let stickerImageObserver = null;
 let stickerImageQueue = [];
 let activeStickerImageLoads = 0;
-let stickerRenderGeneration = 0;
+let stickerImageCacheGeneration = 0;
+const stickerTileCache = new Map();
 
 
 function ready(callback) {
@@ -704,6 +705,8 @@ function setupKeyboardNavigation(stickerPanel) {
 function preloadStickerPanel() {
     if (document.querySelector("#stickerPanel")) return;
 
+    resetStickerTileCache();
+
     chrome.storage.local.get(["sticker_favorites", "sticker_recents", BROKEN_STICKERS_KEY]).then((res) => {
         const storedFavs = res.sticker_favorites || [];
         favorites.clear();
@@ -840,15 +843,10 @@ function renderStickerResults(stickerPanel, stickers) {
     const resultGrid = stickerPanel.querySelector('[data-role="sticker-results"]');
     if (!resultGrid) return;
 
-    stickerRenderGeneration += 1;
-    const renderGeneration = stickerRenderGeneration;
-    stickerImageQueue = stickerImageQueue.filter((job) => job.generation === renderGeneration);
     if (stickerImageObserver) {
         stickerImageObserver.disconnect();
         stickerImageObserver = null;
     }
-
-    resultGrid.replaceChildren();
 
     let tabStickers = stickers;
     if (activeTab === "recent") {
@@ -865,19 +863,22 @@ function renderStickerResults(stickerPanel, stickers) {
         const emptyState = document.createElement("p");
         emptyState.className = "sticker-empty";
         emptyState.textContent = stickerSearchQuery ? "No matching stickers." : "No stickers available.";
-        resultGrid.appendChild(emptyState);
+        resultGrid.replaceChildren(emptyState);
         if (stickerPanel.style.display !== "none") {
             positionStickerPanel(stickerPanel);
         }
         return;
     }
 
+    const visibleTiles = availableStickers.map(getOrCreateStickerTile);
+    resultGrid.replaceChildren(...visibleTiles);
+
     if (typeof IntersectionObserver === "function") {
         stickerImageObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach((entry) => {
                 if (!entry.isIntersecting) return;
                 observer.unobserve(entry.target);
-                queueStickerImage(entry.target, entry.target._stickerData, renderGeneration);
+                queueStickerImage(entry.target, entry.target._stickerData);
             });
         }, {
             root: resultGrid,
@@ -886,20 +887,40 @@ function renderStickerResults(stickerPanel, stickers) {
         });
     }
 
-    availableStickers.forEach((sticker, index) => {
-        const tile = createStickerTile(sticker);
-        resultGrid.appendChild(tile);
-
+    visibleTiles.forEach((tile, index) => {
         if (index < STICKER_PRELOAD_COUNT || !stickerImageObserver) {
-            queueStickerImage(tile, sticker, renderGeneration);
+            queueStickerImage(tile, tile._stickerData);
         } else {
-            stickerImageObserver.observe(tile);
+            if (tile.dataset.imageState === "idle") {
+                stickerImageObserver.observe(tile);
+            }
         }
     });
 
     if (stickerPanel.style.display !== "none") {
         positionStickerPanel(stickerPanel);
     }
+}
+
+function getOrCreateStickerTile(sticker) {
+    const cachedTile = stickerTileCache.get(sticker.previewId);
+    if (cachedTile) {
+        return cachedTile;
+    }
+
+    const tile = createStickerTile(sticker);
+    stickerTileCache.set(sticker.previewId, tile);
+    return tile;
+}
+
+function resetStickerTileCache() {
+    stickerImageCacheGeneration += 1;
+    stickerImageQueue = [];
+    if (stickerImageObserver) {
+        stickerImageObserver.disconnect();
+        stickerImageObserver = null;
+    }
+    stickerTileCache.clear();
 }
 
 function matchesStickerSearch(sticker, query) {
@@ -976,19 +997,27 @@ function createStickerLoadingIndicator() {
     return loading;
 }
 
-function queueStickerImage(tile, sticker, generation) {
+function queueStickerImage(tile, sticker) {
     if (!tile || !sticker || tile.dataset.imageState !== "idle") return;
 
     tile.dataset.imageState = "queued";
     tile.appendChild(createStickerLoadingIndicator());
-    stickerImageQueue.push({ tile, sticker, generation });
+    stickerImageQueue.push({
+        tile,
+        sticker,
+        cacheGeneration: stickerImageCacheGeneration,
+    });
     drainStickerImageQueue();
 }
 
 function drainStickerImageQueue() {
     while (activeStickerImageLoads < STICKER_IMAGE_CONCURRENCY && stickerImageQueue.length > 0) {
         const job = stickerImageQueue.shift();
-        if (!job || job.generation !== stickerRenderGeneration || !job.tile.parentNode) {
+        if (
+            !job ||
+            job.cacheGeneration !== stickerImageCacheGeneration ||
+            stickerTileCache.get(job.sticker.previewId) !== job.tile
+        ) {
             continue;
         }
 
@@ -1010,7 +1039,7 @@ function drainStickerImageQueue() {
     }
 }
 
-function loadStickerImage({ tile, sticker, generation }) {
+function loadStickerImage({ tile, sticker, cacheGeneration }) {
     tile.dataset.imageState = "loading";
 
     return new Promise((resolve) => {
@@ -1020,7 +1049,11 @@ function loadStickerImage({ tile, sticker, generation }) {
         image.className = "sticker-img";
 
         image.addEventListener("load", () => {
-            if (generation === stickerRenderGeneration && tile.parentNode && !tile.disabled) {
+            if (
+                cacheGeneration === stickerImageCacheGeneration &&
+                stickerTileCache.get(sticker.previewId) === tile &&
+                !tile.disabled
+            ) {
                 const loading = tile.querySelector(".sticker-loading");
                 if (loading) loading.remove();
                 tile.appendChild(image);
@@ -1030,7 +1063,10 @@ function loadStickerImage({ tile, sticker, generation }) {
         }, { once: true });
 
         image.addEventListener("error", () => {
-            if (generation === stickerRenderGeneration && tile.parentNode) {
+            if (
+                cacheGeneration === stickerImageCacheGeneration &&
+                stickerTileCache.get(sticker.previewId) === tile
+            ) {
                 markStickerAsBroken(tile, sticker);
             }
             resolve();
@@ -1220,6 +1256,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             localStorage.removeItem(STICKER_CACHE_KEY);
             localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
             brokenStickerPreviewIds.clear();
+            resetStickerTileCache();
+            const stickerPanel = document.querySelector("#stickerPanel");
+            if (stickerPanel) {
+                renderStickerResults(stickerPanel, currentStickers);
+            }
             console.log("Sticker cache cleared.");
             sendResponse({ status: "success" });
         });
@@ -1231,6 +1272,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             localStorage.removeItem(STICKER_CACHE_KEY);
             localStorage.removeItem(LEGACY_STICKER_CACHE_KEY);
             brokenStickerPreviewIds.clear();
+            resetStickerTileCache();
             return fetchStickersFromNetwork();
         }).then((stickers) => {
             currentStickers = stickers;

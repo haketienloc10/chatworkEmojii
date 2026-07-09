@@ -25,6 +25,9 @@ stickers without covering the main chat history like a centered modal.
   space permits.
 - Closing and reopening the picker preserves the rendered sticker DOM instead
   of recreating every tile and image.
+- Switching tabs, filtering search results, and toggling favorites reuse sticker
+  tiles by `previewId`; an image that has loaded during the current page session
+  must not return to a loading state during those interactions.
 - Picker includes a search input that filters by `name`, `tags`, `pack`,
   `previewId`, and `source`.
 - Search empty state is clear and does not expose preview markup or raw alt text.
@@ -37,6 +40,8 @@ stickers without covering the main chat history like a centered modal.
 - A loading indicator is shown while each image is queued or loading.
 - Broken sticker IDs persist across page refreshes and are cleared only by an
   explicit cache clear or data reload.
+- Explicit cache clear and data reload invalidate the in-memory tile/image cache
+  so users retain a deliberate way to force fresh sticker image state.
 
 ## Design Notes
 
@@ -46,6 +51,8 @@ stickers without covering the main chat history like a centered modal.
   and recent persistence is covered by the picker-enhancements story.
 - Image loading: a five-request queue prioritizes the first 20 stickers, then
   receives additional work from a grid-rooted `IntersectionObserver`.
+- Rendered tiles are cached by `previewId` and moved in and out of the active
+  grid instead of being recreated for each tab or search result.
 - Broken image state is stored in `chrome.storage.local` under
   `sticker_broken_preview_ids_v1`.
 
@@ -68,6 +75,14 @@ None expected.
 
 ## Evidence
 
+- 2026-07-09 tile-cache follow-up: picker rendering now reuses tiles keyed by
+  `previewId`, preserving loaded image nodes across tab changes, search
+  filtering, and favorite updates. Explicit cache clear and data reload reset
+  the tile/image cache.
+- `npm test` passed 71/71, including tile and image identity across tabs/search/
+  favorite plus explicit clear-cache invalidation.
+- `npm run validate` passed; data validation checked 158 items across 7 files
+  with the existing suspicious external URL warning.
 - 2026-07-09 image-loading follow-up: the first 20 stickers are queued before
   open, later stickers are scheduled by a grid-rooted `IntersectionObserver`,
   and the shared queue is capped at five active image requests.
