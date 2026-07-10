@@ -9,7 +9,7 @@ extension package. Manual Chrome smoke remains needed for options-page drag UI.
 
 | Layer | Cases |
 | --- | --- |
-| Unit | preference normalization, order, hide/trash filtering |
+| Unit | preference normalization, order, hide/trash filtering, card selection toggle |
 | Integration | popup/content storage behavior and package checks |
 | E2E | Settings lifecycle in Chrome (manual) |
 | Platform | Load-unpacked options page (manual) |

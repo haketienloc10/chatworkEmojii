@@ -48,7 +48,8 @@ Popup cần áp dụng thay đổi ngay sau khi lưu.
 
 - Tìm kiếm và lọc theo tên, tag, pack, nguồn và trạng thái.
 - Chế độ `Sắp xếp`: kéo thả sticker trong grid để tạo thứ tự cá nhân.
-- Chọn nhiều sticker để ẩn, chuyển vào Thùng rác hoặc gán pack.
+- Chọn nhiều sticker để ẩn, chuyển vào Thùng rác hoặc gán pack; click trực tiếp
+  trên card để chọn hoặc click lại để bỏ chọn.
 - `Reset thứ tự` để quay về thứ tự mặc định từ dữ liệu extension.
 - Có thể mở rộng sau này bằng hàng `Pinned stickers`, độc lập với Favorite.
 - Grid quản lý tự co giãn theo chiều rộng trang; card có thumbnail cố định, tên

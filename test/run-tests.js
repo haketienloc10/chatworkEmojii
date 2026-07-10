@@ -79,14 +79,18 @@ const popupScriptPath = path.resolve(__dirname, '../scripts/popup.js');
 const popupScriptCode = fs.readFileSync(popupScriptPath, 'utf8');
 vm.runInThisContext(popupScriptCode);
 
-// 5. Load only the pure settings ordering helper, without registering Options-page listeners.
+// 5. Load only pure settings helpers, without registering Options-page listeners.
 const settingsScriptPath = path.resolve(__dirname, '../scripts/settings.js');
 const settingsScriptCode = fs.readFileSync(settingsScriptPath, 'utf8');
+const settingsSelectionHelper = settingsScriptCode.slice(
+  settingsScriptCode.indexOf('function nextSelection'),
+  settingsScriptCode.indexOf('function toggleStickerSelection')
+);
 const settingsOrderHelper = settingsScriptCode.slice(
   settingsScriptCode.indexOf('function nextOrder'),
   settingsScriptCode.indexOf('function moveOrder')
 );
-vm.runInThisContext(`${settingsOrderHelper}\nglobal.settingsNextOrder = nextOrder;`);
+vm.runInThisContext(`${settingsSelectionHelper}\n${settingsOrderHelper}\nglobal.settingsNextSelection = nextSelection;\nglobal.settingsNextOrder = nextOrder;`);
 
 // 6. Load suite.js which registers the tests
 require('./suite');

@@ -1759,3 +1759,10 @@ test('Settings ordering: move up and down shift exactly one position', () => {
   assert.deepEqual(global.settingsNextOrder(ids, 'a', -1), ['a', 'b', 'c']);
   assert.deepEqual(global.settingsNextOrder(ids, 'c', 1), ['a', 'b', 'c']);
 });
+
+test('Settings selection: clicking a card toggles its selected state', () => {
+  const selected = global.settingsNextSelection(new Set(), 'a');
+  assert.ok(selected.has('a'), 'First card click should select the sticker');
+  const unselected = global.settingsNextSelection(selected, 'a');
+  assert.ok(!unselected.has('a'), 'Second card click should unselect the same sticker');
+});
