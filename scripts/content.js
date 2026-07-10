@@ -8,6 +8,8 @@ const STICKER_CACHE_KEY = "sticker_cache_v2";
 const LEGACY_STICKER_CACHE_KEY = "sticker_cache";
 const BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const IMPORTED_STICKERS_KEY = "sticker_imported_v1";
+const QUICK_REACTIONS_ENABLED_KEY = "quick_reactions_enabled";
+const QUICK_REACTIONS_LIMIT = 8;
 const CHATWORK_UPLOAD_CONFIG_KEY = "chatwork_upload_config_v1";
 const CHATWORK_ORIGIN = "https://www.chatwork.com/";
 const CHATWORK_DEFAULT_UPLOAD_URL = "https://www.chatwork.com/gateway/upload_file.php";
@@ -26,6 +28,7 @@ let stickerSearchRenderTimer = null;
 let activeTab = "all";
 let favorites = new Set();
 let recents = [];
+let quickReactionsEnabled = true;
 let stickerImageObserver = null;
 let stickerImageQueue = [];
 let activeStickerImageLoads = 0;
@@ -670,6 +673,100 @@ function addToRecents(sticker) {
         global.recents = recents;
     }
     setLocalStorageValue({ sticker_recents: recents });
+    renderQuickReactions();
+}
+
+function getQuickReactionStickers() {
+    const selected = [];
+    const selectedPreviewIds = new Set();
+    const stickersByPreviewId = new Map(currentStickers.map((sticker) => [sticker.previewId, sticker]));
+
+    const addSticker = (sticker) => {
+        if (!sticker || !sticker.previewId || selectedPreviewIds.has(sticker.previewId)) return;
+        const currentSticker = stickersByPreviewId.get(sticker.previewId) || sticker;
+        if (!currentSticker || brokenStickerPreviewIds.has(currentSticker.previewId)) return;
+        selectedPreviewIds.add(currentSticker.previewId);
+        selected.push(currentSticker);
+    };
+
+    recents.forEach(addSticker);
+    currentStickers.filter((sticker) => favorites.has(sticker.previewId)).forEach(addSticker);
+    currentStickers.forEach(addSticker);
+
+    return selected.slice(0, QUICK_REACTIONS_LIMIT);
+}
+
+function renderQuickReactions() {
+    const toolbar = findChatworkToolbar();
+    if (!toolbar) return;
+
+    const existingContainer = document.querySelector("#quickReactionsToolbarItem");
+    const existingBar = document.querySelector("#quickReactionsBar");
+    const existingToggle = document.querySelector("#quickReactionsToggle");
+    if (!quickReactionsEnabled) {
+        if (existingContainer) existingContainer.remove();
+        return;
+    }
+
+    const quickStickers = getQuickReactionStickers();
+    if (quickStickers.length === 0) {
+        if (existingContainer) existingContainer.remove();
+        return;
+    }
+
+    const container = existingContainer || document.createElement("li");
+    container.id = "quickReactionsToolbarItem";
+    container.className = "quick-reactions-toolbar-item";
+
+    const bar = existingBar || document.createElement("div");
+    bar.id = "quickReactionsBar";
+    bar.className = "quick-reactions-bar";
+    bar.setAttribute("aria-label", "Quick sticker reactions");
+
+    const buttons = quickStickers.map((sticker) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "quick-reaction-button";
+        button.setAttribute("aria-label", `Insert quick reaction: ${sticker.name}`);
+        button.title = sticker.name;
+
+        const image = document.createElement("img");
+        image.className = "quick-reaction-image";
+        image.alt = "";
+        image.src = sticker.url;
+        image.addEventListener("error", () => button.remove(), { once: true });
+        button.appendChild(image);
+        button.addEventListener("click", () => {
+            insertStickerToChat(sticker.insertText);
+            addToRecents(sticker);
+        });
+        return button;
+    });
+
+    bar.replaceChildren(...buttons);
+    if (!existingContainer) {
+        const toggle = existingToggle || document.createElement("button");
+        toggle.id = "quickReactionsToggle";
+        toggle.type = "button";
+        toggle.className = "quick-reactions-toggle";
+        toggle.textContent = "Quick reactions";
+        toggle.setAttribute("aria-controls", "quickReactionsBar");
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.addEventListener("click", () => {
+            const expanded = !bar.classList.contains("is-expanded");
+            if (expanded) {
+                bar.classList.add("is-expanded");
+            } else {
+                bar.classList.remove("is-expanded");
+            }
+            toggle.setAttribute("aria-expanded", String(expanded));
+        });
+        container.append(toggle, bar);
+    }
+
+    // Appending an existing node moves it to the final toolbar position. This keeps
+    // Quick Reactions to the right of Chatwork controls added before or after ours.
+    toolbar.appendChild(container);
 }
 
 function setupKeyboardNavigation(stickerPanel) {
@@ -741,7 +838,7 @@ function preloadStickerPanel() {
 
     resetStickerTileCache();
 
-    getLocalStorageValue(["sticker_favorites", "sticker_recents", BROKEN_STICKERS_KEY], {}).then((res) => {
+    getLocalStorageValue(["sticker_favorites", "sticker_recents", BROKEN_STICKERS_KEY, QUICK_REACTIONS_ENABLED_KEY], {}).then((res) => {
         const storedFavs = res.sticker_favorites || [];
         favorites.clear();
         storedFavs.forEach((f) => favorites.add(f));
@@ -758,6 +855,7 @@ function preloadStickerPanel() {
         brokenStickerPreviewIds.clear();
         const storedBrokenIds = Array.isArray(res[BROKEN_STICKERS_KEY]) ? res[BROKEN_STICKERS_KEY] : [];
         storedBrokenIds.forEach((previewId) => brokenStickerPreviewIds.add(String(previewId)));
+        quickReactionsEnabled = res[QUICK_REACTIONS_ENABLED_KEY] !== false;
 
         const stickerPanel = document.createElement("div");
         stickerPanel.id = "stickerPanel";
@@ -869,6 +967,7 @@ function preloadStickerPanel() {
                 global.currentStickers = currentStickers;
             }
             renderStickerResults(stickerPanel, currentStickers);
+            renderQuickReactions();
         });
     });
 }
@@ -1017,6 +1116,7 @@ function createStickerTile(sticker) {
             if (stickerPanel) {
                 renderStickerResults(stickerPanel, currentStickers);
             }
+            renderQuickReactions();
         });
     });
 
@@ -1178,6 +1278,8 @@ function addStickerButton() {
         toggleStickerPanel();
     });
 
+    renderQuickReactions();
+
     if (!document.body.dataset.stickerClickListener) {
         document.body.dataset.stickerClickListener = "true";
         document.addEventListener("click", (event) => {
@@ -1298,6 +1400,15 @@ function observeChatContent() {
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message.action === "set_quick_reactions_enabled") {
+        quickReactionsEnabled = message.enabled !== false;
+        setLocalStorageValue({ [QUICK_REACTIONS_ENABLED_KEY]: quickReactionsEnabled }).then(() => {
+            renderQuickReactions();
+            sendResponse({ status: "success", enabled: quickReactionsEnabled });
+        });
+        return true;
+    }
+
     if (message.action === "clear_sticker_cache") {
         removeLocalStorageValue([STICKER_CACHE_KEY, BROKEN_STICKERS_KEY]).then(() => {
             localStorage.removeItem(STICKER_CACHE_KEY);
@@ -1331,6 +1442,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             if (stickerPanel) {
                 renderStickerResults(stickerPanel, currentStickers);
             }
+            renderQuickReactions();
 
             sendResponse({ status: "success", count: stickers.length });
         });
@@ -1356,4 +1468,6 @@ if (typeof global !== "undefined") {
     global.uploadChatworkStickerFile = uploadChatworkStickerFile;
     global.queueStickerImage = queueStickerImage;
     global.drainStickerImageQueue = drainStickerImageQueue;
+    global.getQuickReactionStickers = getQuickReactionStickers;
+    global.renderQuickReactions = renderQuickReactions;
 }

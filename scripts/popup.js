@@ -1,4 +1,4 @@
-const POPUP_STORAGE_KEYS = ["sticker_cache_v2", "sticker_favorites", "sticker_recents", "sticker_imported_v1"];
+const POPUP_STORAGE_KEYS = ["sticker_cache_v2", "sticker_favorites", "sticker_recents", "sticker_imported_v1", "quick_reactions_enabled"];
 const POPUP_IMPORTED_STICKERS_KEY = "sticker_imported_v1";
 const POPUP_BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const POPUP_CHATWORK_ORIGIN = "https://www.chatwork.com/";
@@ -31,6 +31,10 @@ function getPopupStorage(keys, fallbackValue) {
 
 function removePopupStorage(keys) {
     return withInvalidatedContextFallback(() => chrome.storage.local.remove(keys), false);
+}
+
+function setPopupStorage(data) {
+    return withInvalidatedContextFallback(() => chrome.storage.local.set(data), false);
 }
 
 function countArray(value) {
@@ -83,6 +87,13 @@ function renderDashboard(summary) {
     setText("importedCount", summary.importedCount);
 }
 
+function renderQuickReactionsToggle(storageData) {
+    const toggle = document.getElementById("quickReactionsEnabled");
+    if (toggle) {
+        toggle.checked = storageData.quick_reactions_enabled !== false;
+    }
+}
+
 function splitTags(value) {
     return value
         .split(",")
@@ -102,7 +113,23 @@ function refreshDashboard() {
     return getPopupStorage(POPUP_STORAGE_KEYS, {}).then((storageData) => {
         const summary = summarizeDashboard(storageData);
         renderDashboard(summary);
+        renderQuickReactionsToggle(storageData);
         return summary;
+    });
+}
+
+function setQuickReactionsEnabled(enabled) {
+    return setPopupStorage({ quick_reactions_enabled: Boolean(enabled) }).then((saved) => {
+        if (saved === false) {
+            setStatus("Could not save Quick Reactions setting.");
+            return { ok: false };
+        }
+
+        return sendActiveTabMessage({ action: "set_quick_reactions_enabled", enabled: Boolean(enabled) })
+            .then(() => {
+                setStatus(`Quick Reactions ${enabled ? "enabled" : "disabled"}.`);
+                return { ok: true };
+            });
     });
 }
 
@@ -222,6 +249,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const clearButton = document.getElementById("clearStickerCache");
     const reloadButton = document.getElementById("reloadStickerData");
     const uploadButton = document.getElementById("uploadSticker");
+    const quickReactionsToggle = document.getElementById("quickReactionsEnabled");
 
     if (!getInputValue("importPack")) {
         setInputValue("importPack", defaultPackName());
@@ -242,6 +270,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (uploadButton) {
         uploadButton.addEventListener("click", uploadSelectedStickerFromPopup);
     }
+
+    if (quickReactionsToggle) {
+        quickReactionsToggle.addEventListener("change", () => {
+            setQuickReactionsEnabled(quickReactionsToggle.checked);
+        });
+    }
 });
 
 if (typeof global !== "undefined") {
@@ -251,4 +285,5 @@ if (typeof global !== "undefined") {
     global.reloadStickerDataFromPopup = reloadStickerData;
     global.uploadStickerFilePayloadFromPopup = uploadStickerFilePayload;
     global.uploadSelectedStickerFromPopup = uploadSelectedStickerFromPopup;
+    global.setQuickReactionsEnabledFromPopup = setQuickReactionsEnabled;
 }

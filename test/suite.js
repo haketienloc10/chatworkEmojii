@@ -161,6 +161,51 @@ test('Feature 1: Adding a sticker to Recents (uniqueness and top priority)', asy
   assert.equal(global.recents[0].previewId, firstSticker.previewId, "Re-inserted sticker should move back to top");
 });
 
+test('Quick Reactions: renders up to eight unique stickers and prioritizes recents then favorites', async () => {
+  await openPanel();
+  const stickers = global.currentStickers;
+  const recentSticker = stickers[3];
+  const favoriteSticker = stickers[5];
+  global.recents.push(recentSticker);
+  global.favorites.add(favoriteSticker.previewId);
+  global.renderQuickReactions();
+
+  const bar = document.querySelector('#quickReactionsBar');
+  const buttons = bar.querySelectorAll('.quick-reaction-button');
+  const toolbar = document.querySelector('#_chatSendArea').querySelector('ul');
+  const toolbarItem = document.querySelector('#quickReactionsToolbarItem');
+  assert.ok(bar, 'Quick Reactions bar should render in the toolbar');
+  assert.equal(toolbarItem.parentNode, toolbar, 'Quick Reactions should be part of the Chatwork toolbar row');
+  assert.equal(toolbar.childNodes[toolbar.childNodes.length - 1], toolbarItem, 'Quick Reactions should remain at the right end of existing toolbar buttons');
+  assert.ok(buttons.length > 0 && buttons.length <= 8, 'Bar should render between one and eight stickers');
+  assert.equal(buttons[0].title, recentSticker.name, 'Recent sticker should be first');
+  assert.equal(buttons[1].title, favoriteSticker.name, 'Favorite sticker should follow recents');
+  assert.equal(new Set(Array.from(buttons).map((button) => button.title)).size, buttons.length, 'Quick reactions should be unique');
+  assert.ok(buttons[0].getAttribute('aria-label').includes('Insert quick reaction:'), 'Quick reaction should have an accessible label');
+  const narrowToggle = document.querySelector('#quickReactionsToggle');
+  assert.ok(narrowToggle, 'A narrow-viewport Quick Reactions disclosure control should exist');
+  narrowToggle.click();
+  assert.ok(bar.classList.contains('is-expanded'), 'Disclosure control should expand the reactions bar');
+  assert.equal(narrowToggle.getAttribute('aria-expanded'), 'true', 'Disclosure control should expose its state');
+});
+
+test('Quick Reactions: click inserts sticker, updates recents, and disabled state removes the bar', async () => {
+  await openPanel();
+  clearChat();
+  global.renderQuickReactions();
+  const button = document.querySelector('#quickReactionsBar').querySelector('.quick-reaction-button');
+  const sticker = global.currentStickers.find((item) => item.name === button.title);
+  button.click();
+
+  assert.equal(getChatValue().trim(), sticker.insertText, 'Quick reaction click should insert the selected sticker');
+  assert.equal(global.recents[0].previewId, sticker.previewId, 'Quick reaction click should update recents');
+
+  await global.setQuickReactionsEnabledFromPopup(false);
+  assert.equal(document.querySelector('#quickReactionsBar'), null, 'Disabled setting should remove the bar');
+  const storage = await chrome.storage.local.get('quick_reactions_enabled');
+  assert.equal(storage.quick_reactions_enabled, false, 'Disabled setting should persist locally');
+});
+
 test('Feature 1: Toggling favorite status via the favorite star/pin icon', async () => {
   await openPanel();
   const tiles = getVisibleTiles();

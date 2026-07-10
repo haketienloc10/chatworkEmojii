@@ -156,6 +156,77 @@
     mix-blend-mode: difference;
 }
 
+.quick-reactions-toolbar-item {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    margin-left: auto;
+    list-style: none;
+}
+
+.quick-reactions-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    margin: 0;
+    overflow-x: auto;
+    overscroll-behavior: contain;
+}
+
+.quick-reactions-toggle {
+    display: none;
+}
+
+.quick-reaction-button {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    padding: 2px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: #f8fafc;
+    cursor: pointer;
+}
+
+.quick-reaction-button:hover,
+.quick-reaction-button:focus-visible {
+    border-color: #60a5fa;
+    background: #eff6ff;
+    outline: none;
+}
+
+.quick-reaction-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@media (max-width: 480px) {
+    .quick-reactions-toggle {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        margin: 0;
+        padding: 0 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #374151;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .quick-reactions-bar {
+        display: none;
+    }
+
+    .quick-reactions-bar.is-expanded {
+        display: flex;
+    }
+}
+
 .sticker-tabs-container {
     display: flex;
     flex: 0 0 auto;
