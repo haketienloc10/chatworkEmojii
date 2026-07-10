@@ -23,6 +23,8 @@ become a small operational dashboard instead of only a cache clear button.
 - Clear cache removes only cached sticker data and broken-image runtime state; it must not erase favorites or recents.
 - Reload data asks the active Chatwork content script to reload sticker JSON and reports the refreshed sticker count.
 - Popup reports a useful status message when no Chatwork content script is available.
+- Popup opening or refreshing must ignore stale `Extension context invalidated`
+  storage errors left by an extension reload.
 - Popup keeps controls compact enough for the browser action popup.
 - `npm run test` and `npm run validate` pass.
 
@@ -74,3 +76,7 @@ None expected.
   with the active Chatwork tab simulated: reload data reported 157 items, clear
   cache changed cache state to `Empty`, favorites/recents stayed at 1/1, and a
   second reload restored cache state to `Ready`.
+- 2026-07-10 stale-context hardening: popup storage reads/writes and content
+  script cache writes now ignore Chrome's stale `Extension context invalidated`
+  errors so opening the popup after an extension reload does not raise an
+  uncaught rejection.

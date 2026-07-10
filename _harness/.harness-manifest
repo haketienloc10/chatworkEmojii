@@ -4,9 +4,6 @@ source = haketienloc10/harness-engineering
 ref = main
 
 [files]
-.editorconfig
-.prettierignore
-.prettierrc
 _harness/ARCHITECTURE.md
 _harness/CONTEXT_RULES.md
 _harness/FEATURE_INTAKE.md
@@ -34,6 +31,3 @@ _harness/templates/high-risk-story/validation.md
 _harness/templates/spec-intake.md
 _harness/templates/story.md
 _harness/templates/validation-report.md
-docs/decisions/README.md
-docs/product/README.md
-docs/stories/README.md

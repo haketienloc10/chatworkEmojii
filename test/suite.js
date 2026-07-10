@@ -1,5 +1,20 @@
 // E2E Test Suite for Chatwork Sticker Extension
 // Tests are registered using global.test() and assert using global.assert.
+const fs = require('fs');
+const path = require('path');
+
+function getCssRule(selector) {
+  const css = fs.readFileSync(path.resolve(__dirname, '../styles.css'), 'utf8');
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = css.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`));
+  return match ? match[1] : "";
+}
+
+function getCssDeclaration(rule, property) {
+  const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = rule.match(new RegExp(`${escapedProperty}\\s*:\\s*([^;]+);`));
+  return match ? match[1].trim() : "";
+}
 
 // Helper to open the sticker panel and wait for render
 async function openPanel() {
@@ -123,9 +138,10 @@ test('Feature 1: Adding a sticker to Recents (uniqueness and top priority)', asy
   const firstSticker = global.currentStickers.find(s => s.previewId === firstTile.dataset.previewId);
   
   // Insert sticker by clicking tile
-  firstTile.click();
+  firstTile.querySelector(".sticker-select-btn").click();
   assert.equal(global.recents.length, 1, "Recents should have 1 item");
   assert.equal(global.recents[0].previewId, firstSticker.previewId, "First recent should be the inserted sticker");
+  assert.equal(document.querySelector("#stickerPanel").style.display, "none", "Clicking a sticker should close the panel");
   
   // Insert second sticker
   await openPanel();
@@ -152,14 +168,22 @@ test('Feature 1: Toggling favorite status via the favorite star/pin icon', async
   const previewId = firstTile.dataset.previewId;
   
   const favBtn = firstTile.querySelector(".favorite-btn");
+  const selectBtn = firstTile.querySelector(".sticker-select-btn");
   assert.ok(favBtn, "Favorite button must exist on the tile");
+  assert.ok(selectBtn, "Sticker selection button must exist on the tile");
+  assert.equal(firstTile.tagName, "DIV", "Sticker tile should be a non-interactive container");
+  assert.equal(favBtn.parentNode, firstTile, "Favorite and sticker selection controls should be siblings");
+  assert.equal(selectBtn.parentNode, firstTile, "Favorite and sticker selection controls should be siblings");
   assert.equal(favBtn.textContent, "☆", "Should be unfilled initially");
   
   // Toggle favorite on
+  clearChat();
   favBtn.click();
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.ok(global.favorites.has(previewId), "Should be added to favorites");
   assert.equal(favBtn.textContent, "★", "Should show filled star");
+  assert.equal(getChatValue(), "", "Clicking favorite should not insert the sticker");
+  assert.ok(document.querySelector("#stickerPanel").style.display !== "none", "Clicking favorite should keep the panel open");
   
   // Switch to Favorite tab and verify visibility
   const favoriteTabBtn = document.querySelector(".sticker-tab-favorite");
@@ -174,6 +198,48 @@ test('Feature 1: Toggling favorite status via the favorite star/pin icon', async
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.ok(!global.favorites.has(previewId), "Should be removed from favorites");
   assert.equal(getVisibleTiles().length, 0, "Favorite tab should now be empty");
+});
+
+test('Feature 1: Favorite save ignores invalidated extension context', async () => {
+  await openPanel();
+  const firstTile = getVisibleTiles()[0];
+  const previewId = firstTile.dataset.previewId;
+  const favBtn = firstTile.querySelector(".favorite-btn");
+  const originalSet = chrome.storage.local.set;
+  const unhandled = [];
+  const onUnhandled = (error) => unhandled.push(error);
+
+  process.on("unhandledRejection", onUnhandled);
+  chrome.storage.local.set = () => Promise.reject(new Error("Extension context invalidated."));
+
+  try {
+    favBtn.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+  } finally {
+    chrome.storage.local.set = originalSet;
+    process.removeListener("unhandledRejection", onUnhandled);
+  }
+
+  assert.ok(global.favorites.has(previewId), "Favorite state should update in the active UI");
+  assert.equal(favBtn.textContent, "★", "Favorite icon should still reflect the click");
+  assert.deepEqual(unhandled, [], "Invalidated context should not create an unhandled rejection");
+});
+
+test('Feature 1: Favorite hit target stays compact and separate from sticker selection', async () => {
+  await openPanel();
+  const firstTile = getVisibleTiles()[0];
+  const favBtn = firstTile.querySelector(".favorite-btn");
+  const selectBtn = firstTile.querySelector(".sticker-select-btn");
+  assert.ok(favBtn, "Favorite button must exist on the tile");
+  assert.ok(selectBtn, "Sticker selection button must exist on the tile");
+  assert.equal(favBtn.parentNode, firstTile, "Favorite control should stay outside the sticker selection button");
+  assert.equal(selectBtn.parentNode, firstTile, "Sticker selection button should stay as the main tile control");
+
+  const favoriteRule = getCssRule('.favorite-btn');
+  assert.ok(favoriteRule, "Favorite button CSS rule must exist");
+  assert.equal(getCssDeclaration(favoriteRule, 'width'), '16px', "Favorite hit target should be compact");
+  assert.equal(getCssDeclaration(favoriteRule, 'height'), '16px', "Favorite hit target should be compact");
+  assert.equal(getCssDeclaration(favoriteRule, 'padding'), '0', "Favorite button should not expand its hit target with padding");
 });
 
 // --- FEATURE 2: KEYBOARD NAVIGATION ---
@@ -198,24 +264,24 @@ test('Feature 2: Highlight/focus navigation using Arrow keys', async () => {
   // Press ArrowRight to focus first tile
   triggerKeydown("ArrowRight");
   const tiles = getVisibleTiles();
-  assert.equal(document.activeElement, tiles[0], "ArrowRight from search should focus first tile");
+  assert.equal(document.activeElement, tiles[0].querySelector(".sticker-select-btn"), "ArrowRight from search should focus first sticker button");
   assert.ok(tiles[0].classList.contains("highlighted"), "Should have highlighted class");
   
   // Press ArrowRight again
   triggerKeydown("ArrowRight");
-  assert.equal(document.activeElement, tiles[1], "ArrowRight should move focus to next tile");
+  assert.equal(document.activeElement, tiles[1].querySelector(".sticker-select-btn"), "ArrowRight should move focus to next sticker button");
   
   // Press ArrowLeft
   triggerKeydown("ArrowLeft");
-  assert.equal(document.activeElement, tiles[0], "ArrowLeft should move focus back to first tile");
+  assert.equal(document.activeElement, tiles[0].querySelector(".sticker-select-btn"), "ArrowLeft should move focus back to first sticker button");
   
   // Press ArrowDown (column move, e.g. +4)
   triggerKeydown("ArrowDown");
-  assert.equal(document.activeElement, tiles[4], "ArrowDown should move focus down 4 elements (next row)");
+  assert.equal(document.activeElement, tiles[4].querySelector(".sticker-select-btn"), "ArrowDown should move focus down 4 elements (next row)");
   
   // Press ArrowUp
   triggerKeydown("ArrowUp");
-  assert.equal(document.activeElement, tiles[0], "ArrowUp should move focus up 4 elements");
+  assert.equal(document.activeElement, tiles[0].querySelector(".sticker-select-btn"), "ArrowUp should move focus up 4 elements");
 });
 
 test('Feature 2: Inserting sticker and closing panel on Enter', async () => {
@@ -226,7 +292,7 @@ test('Feature 2: Inserting sticker and closing panel on Enter', async () => {
   const targetSticker = global.currentStickers.find(s => s.previewId === tiles[0].dataset.previewId);
   
   // Navigate to first element and press Enter
-  tiles[0].focus();
+  tiles[0].querySelector(".sticker-select-btn").focus();
   triggerKeydown("Enter");
   
   assert.equal(getChatValue().trim(), targetSticker.insertText, "Enter on tile should insert its markup");
@@ -463,7 +529,10 @@ test('Feature 4: Preloads the first 20 images and defers the rest to viewport ob
 });
 
 test('Feature 4: Shows a loading icon while an image request is pending', () => {
-  const tile = document.createElement("button");
+  const tile = document.createElement("div");
+  const selectBtn = document.createElement("button");
+  selectBtn.className = "sticker-select-btn";
+  tile.appendChild(selectBtn);
   tile.dataset.imageState = "idle";
   document.body.appendChild(tile);
 
@@ -607,7 +676,7 @@ test('Boundary 2: Keyboard navigation wrapping and boundaries', async () => {
     }
     
     // Focus should be on some tile (wrapping works or stays in bounds)
-    assert.ok(document.activeElement.classList.contains("sticker-tile"));
+  assert.ok(document.activeElement.classList.contains("sticker-select-btn"));
   }
 });
 
@@ -833,6 +902,33 @@ test('Feature 5: Popup dashboard renders counts', async () => {
   assert.equal(document.querySelector("#favoriteCount").textContent, "2");
   assert.equal(document.querySelector("#recentCount").textContent, "1");
   assert.equal(document.querySelector("#importedCount").textContent, "1");
+});
+
+test('Feature 5: Popup refresh ignores invalidated extension context', async () => {
+  mountPopupDashboard();
+  const originalGet = chrome.storage.local.get;
+  const unhandled = [];
+  const onUnhandled = (error) => unhandled.push(error);
+
+  process.on("unhandledRejection", onUnhandled);
+  chrome.storage.local.get = () => Promise.reject(new Error("Extension context invalidated."));
+
+  try {
+    const summary = await global.refreshDashboard();
+    assert.deepEqual(summary, {
+      stickerCount: 0,
+      favoriteCount: 0,
+      recentCount: 0,
+      importedCount: 0,
+      cacheState: "Empty"
+    });
+    assert.equal(document.querySelector("#cacheState").textContent, "Empty");
+  } finally {
+    chrome.storage.local.get = originalGet;
+    process.removeListener("unhandledRejection", onUnhandled);
+  }
+
+  assert.deepEqual(unhandled, [], "Invalidated popup storage read should not create an unhandled rejection");
 });
 
 test('Feature 5: Popup clear cache keeps favorites and recents', async () => {
@@ -1250,7 +1346,7 @@ test('Tier 3: Keyboard navigation after switching tabs', async () => {
   triggerKeydown("ArrowRight");
   
   const recentTiles = getVisibleTiles();
-  assert.equal(document.activeElement, recentTiles[0], "Keyboard navigation should focus the tile in Recent tab");
+  assert.equal(document.activeElement, recentTiles[0].querySelector(".sticker-select-btn"), "Keyboard navigation should focus the sticker button in Recent tab");
   
   // Press Enter
   clearChat();
@@ -1322,11 +1418,11 @@ test('Tier 3: Arrow navigation on search results, then toggling favorite status'
   triggerKeydown("ArrowRight");
   
   const focusedTile = document.activeElement;
-  assert.ok(focusedTile.classList.contains("sticker-tile"));
+  assert.ok(focusedTile.classList.contains("sticker-select-btn"));
   
   // Toggle favorite on focused element by clicking its favorite button
-  focusedTile.querySelector(".favorite-btn").click();
-  assert.ok(global.favorites.has(focusedTile.dataset.previewId));
+  focusedTile.closest(".sticker-tile").querySelector(".favorite-btn").click();
+  assert.ok(global.favorites.has(focusedTile.closest(".sticker-tile").dataset.previewId));
 });
 
 // ==========================================

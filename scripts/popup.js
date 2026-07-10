@@ -3,6 +3,36 @@ const POPUP_IMPORTED_STICKERS_KEY = "sticker_imported_v1";
 const POPUP_BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const POPUP_CHATWORK_ORIGIN = "https://www.chatwork.com/";
 
+function isExtensionContextInvalidatedError(error) {
+    return Boolean(error && typeof error.message === "string" && error.message.includes("Extension context invalidated"));
+}
+
+function withInvalidatedContextFallback(operation, fallbackValue) {
+    try {
+        return Promise.resolve(operation()).catch((error) => {
+            if (isExtensionContextInvalidatedError(error)) {
+                return fallbackValue;
+            }
+
+            throw error;
+        });
+    } catch (error) {
+        if (isExtensionContextInvalidatedError(error)) {
+            return Promise.resolve(fallbackValue);
+        }
+
+        return Promise.reject(error);
+    }
+}
+
+function getPopupStorage(keys, fallbackValue) {
+    return withInvalidatedContextFallback(() => chrome.storage.local.get(keys), fallbackValue);
+}
+
+function removePopupStorage(keys) {
+    return withInvalidatedContextFallback(() => chrome.storage.local.remove(keys), false);
+}
+
 function countArray(value) {
     return Array.isArray(value) ? value.length : 0;
 }
@@ -69,7 +99,7 @@ function defaultPackName() {
 }
 
 function refreshDashboard() {
-    return chrome.storage.local.get(POPUP_STORAGE_KEYS).then((storageData) => {
+    return getPopupStorage(POPUP_STORAGE_KEYS, {}).then((storageData) => {
         const summary = summarizeDashboard(storageData);
         renderDashboard(summary);
         return summary;
@@ -96,7 +126,7 @@ function sendActiveTabMessage(message) {
 
 function clearStickerCache() {
     setStatus("Clearing sticker cache...");
-    return chrome.storage.local.remove(["sticker_cache_v2", POPUP_BROKEN_STICKERS_KEY])
+    return removePopupStorage(["sticker_cache_v2", POPUP_BROKEN_STICKERS_KEY])
         .then(() => sendActiveTabMessage({ action: "clear_sticker_cache" }))
         .then((result) => refreshDashboard().then(() => result))
         .then((result) => {

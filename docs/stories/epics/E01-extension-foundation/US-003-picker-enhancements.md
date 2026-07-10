@@ -28,6 +28,7 @@ The sticker picker panel must support tabs (All, Recent, Favorite), keyboard nav
 - [x] Images load lazily (only when in/near viewport).
 - [x] Broken images render a disabled placeholder instead of broken image icon or alt text.
 - [x] Hovering and scaling a sticker does not change the grid column count or make tiles jump between rows.
+- [x] Sticker selection and favorite actions use sibling buttons; the image cannot cover the favorite hit target.
 - [x] The automated test suite runs successfully with `npm run test` or a custom test script.
 - [x] `npm run validate` runs successfully without any errors or warnings.
 
@@ -35,6 +36,7 @@ The sticker picker panel must support tabs (All, Recent, Favorite), keyboard nav
 
 - Storage API: `chrome.storage.local`
 - UI elements: Add Tabs (`All`, `Recent`, `Favorite`) and "Random" button to the picker.
+- Sticker tiles use a non-interactive container with separate selection and favorite buttons.
 - Keyboard support: Attach `keydown` listeners on the document/picker.
 - Lazy-load: Use IntersectionObserver.
 
@@ -57,8 +59,20 @@ None.
 
 ## Evidence
 
-- Node-based test runner (`npm run test`) successfully passes 64/64 tests (100% success rate).
-- Validations (`npm run validate`) pass with clean status.
+- 2026-07-09 favorite hit-target fix: replaced nested buttons with sibling
+  selection/favorite controls, raised the favorite control above the scaled
+  image, and added regression coverage that favorite does not insert/close
+  while selection does close the picker. The favorite hit target remains
+  transparent so it does not obscure sticker artwork.
+- 2026-07-10 favorite hit-target refinement: reduced the favorite control from
+  24x24 to 16x16, kept it as a sibling control outside sticker selection, and
+  added regression coverage that the compact CSS hit target does not expand via
+  padding.
+- 2026-07-10 invalidated context handling: favorite and recent storage writes
+  ignore Chrome's stale content-script `Extension context invalidated` error so
+  extension reloads do not create an uncaught promise rejection.
+- Node-based test runner (`npm run test`) successfully passes 73/73 tests (100% success rate).
+- Validation (`npm run validate`) passes; `validate:data` reports one pre-existing suspicious sticker URL warning.
 - Hover overflow is isolated horizontally, scrollbar space remains stable, and
   scaling is driven by the fixed-size tile hover state.
 - Forensic Auditor audit report executed under `.agents/auditor/audit_report.md` reports verdict CLEAN.
