@@ -8,6 +8,12 @@ const STICKER_CACHE_KEY = "sticker_cache_v2";
 const LEGACY_STICKER_CACHE_KEY = "sticker_cache";
 const BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const IMPORTED_STICKERS_KEY = "sticker_imported_v1";
+const POPUP_PREFERENCES_KEY = "sticker_popup_preferences_v1";
+const CUSTOM_ORDER_KEY = "sticker_custom_order_v1";
+const HIDDEN_PREVIEW_IDS_KEY = "sticker_hidden_preview_ids_v1";
+const TRASH_KEY = "sticker_trash_v1";
+const PINNED_PREVIEW_IDS_KEY = "sticker_pinned_preview_ids_v1";
+const PACK_PREFERENCES_KEY = "sticker_pack_preferences_v1";
 const QUICK_REACTIONS_ENABLED_KEY = "quick_reactions_enabled";
 const QUICK_REACTIONS_LIMIT = 8;
 const USAGE_METRICS_KEY = "sticker_usage_metrics_v1";
@@ -26,6 +32,7 @@ const STICKER_IMAGE_CONCURRENCY = 5;
 const UPLOAD_IMPORT_SOURCE = "chatwork-upload";
 const brokenStickerPreviewIds = new Set();
 let currentStickers = [];
+let sourceStickers = [];
 let stickerSearchQuery = "";
 let stickerSearchRenderTimer = null;
 let activeTab = "all";
@@ -33,6 +40,10 @@ let selectedPack = "";
 let favorites = new Set();
 let recents = [];
 let quickReactionsEnabled = true;
+let hiddenStickerPreviewIds = new Set();
+let trashedStickerPreviewIds = new Set();
+let customStickerOrder = [];
+let stickerPackPreferences = {};
 let usageMetricsWrite = Promise.resolve();
 let stickerImageObserver = null;
 let stickerImageQueue = [];
@@ -74,6 +85,67 @@ function setLocalStorageValue(data) {
 
 function removeLocalStorageValue(keys) {
     return withInvalidatedContextFallback(() => chrome.storage.local.remove(keys), false);
+}
+
+function normalizeStickerManagementPreferences(storageData) {
+    const data = storageData || {};
+    return {
+        hiddenPreviewIds: Array.isArray(data[HIDDEN_PREVIEW_IDS_KEY]) ? data[HIDDEN_PREVIEW_IDS_KEY].map(String) : [],
+        trashedPreviewIds: Array.isArray(data[TRASH_KEY]) ? data[TRASH_KEY].map((item) => item && item.previewId).filter(Boolean).map(String) : [],
+        customOrder: Array.isArray(data[CUSTOM_ORDER_KEY]) ? data[CUSTOM_ORDER_KEY].map(String) : [],
+        packPreferences: data[PACK_PREFERENCES_KEY] && typeof data[PACK_PREFERENCES_KEY] === "object" ? data[PACK_PREFERENCES_KEY] : {},
+    };
+}
+
+function applyStickerManagementPreferences(storageData) {
+    const preferences = normalizeStickerManagementPreferences(storageData);
+    hiddenStickerPreviewIds = new Set(preferences.hiddenPreviewIds);
+    trashedStickerPreviewIds = new Set(preferences.trashedPreviewIds);
+    customStickerOrder = preferences.customOrder;
+    stickerPackPreferences = preferences.packPreferences;
+}
+
+function isStickerManagedVisible(sticker) {
+    if (!sticker || !sticker.previewId) return false;
+    const previewId = String(sticker.previewId);
+    const pack = stickerPackPreferences[sticker.pack] || {};
+    return !hiddenStickerPreviewIds.has(previewId) && !trashedStickerPreviewIds.has(previewId) && pack.hidden !== true;
+}
+
+function sortStickersByCustomOrder(stickers) {
+    const rank = new Map(customStickerOrder.map((previewId, index) => [String(previewId), index]));
+    return stickers.map((sticker, index) => ({ sticker, index })).sort((left, right) => {
+        const leftRank = rank.has(String(left.sticker.previewId)) ? rank.get(String(left.sticker.previewId)) : customStickerOrder.length + left.index;
+        const rightRank = rank.has(String(right.sticker.previewId)) ? rank.get(String(right.sticker.previewId)) : customStickerOrder.length + right.index;
+        return leftRank - rightRank;
+    }).map((item) => item.sticker);
+}
+
+function visibleManagedStickers(stickers) {
+    return sortStickersByCustomOrder((Array.isArray(stickers) ? stickers : []).filter(isStickerManagedVisible));
+}
+
+function refreshStickerManagementPreferences() {
+    return getLocalStorageValue([HIDDEN_PREVIEW_IDS_KEY, TRASH_KEY, CUSTOM_ORDER_KEY, PACK_PREFERENCES_KEY], {})
+        .then((storageData) => {
+            applyStickerManagementPreferences(storageData);
+            const removedIds = new Set(trashedStickerPreviewIds);
+            const oldFavorites = Array.from(favorites);
+            const keptFavorites = oldFavorites.filter((previewId) => !removedIds.has(String(previewId)));
+            const oldRecentsLength = recents.length;
+            const keptRecents = recents.filter((sticker) => !removedIds.has(String(sticker.previewId)));
+            favorites.clear(); keptFavorites.forEach((previewId) => favorites.add(previewId));
+            recents = keptRecents;
+            const writes = [];
+            if (keptFavorites.length !== oldFavorites.length) writes.push(setLocalStorageValue({ sticker_favorites: keptFavorites }));
+            if (keptRecents.length !== oldRecentsLength) writes.push(setLocalStorageValue({ sticker_recents: keptRecents }));
+            currentStickers = visibleManagedStickers(sourceStickers.length ? sourceStickers : currentStickers);
+            if (typeof global !== "undefined") global.currentStickers = currentStickers;
+            const panel = document.querySelector("#stickerPanel");
+            if (panel) { renderPackFilters(panel, currentStickers); renderStickerResults(panel, currentStickers); }
+            renderQuickReactions();
+            return Promise.all(writes).then(() => currentStickers.length);
+        });
 }
 
 function usageMetricDate(date = new Date()) {
@@ -755,7 +827,7 @@ function getQuickReactionStickers() {
     const addSticker = (sticker) => {
         if (!sticker || !sticker.previewId || selectedPreviewIds.has(sticker.previewId)) return;
         const currentSticker = stickersByPreviewId.get(sticker.previewId) || sticker;
-        if (!currentSticker || brokenStickerPreviewIds.has(currentSticker.previewId)) return;
+        if (!currentSticker || !isStickerManagedVisible(currentSticker) || brokenStickerPreviewIds.has(currentSticker.previewId)) return;
         selectedPreviewIds.add(currentSticker.previewId);
         selected.push(currentSticker);
     };
@@ -911,7 +983,7 @@ function preloadStickerPanel() {
     resetStickerTileCache();
     selectedPack = "";
 
-    getLocalStorageValue(["sticker_favorites", "sticker_recents", BROKEN_STICKERS_KEY, QUICK_REACTIONS_ENABLED_KEY], {}).then((res) => {
+    getLocalStorageValue(["sticker_favorites", "sticker_recents", BROKEN_STICKERS_KEY, QUICK_REACTIONS_ENABLED_KEY, HIDDEN_PREVIEW_IDS_KEY, TRASH_KEY, CUSTOM_ORDER_KEY, PACK_PREFERENCES_KEY], {}).then((res) => {
         const storedFavs = res.sticker_favorites || [];
         favorites.clear();
         storedFavs.forEach((f) => favorites.add(f));
@@ -929,6 +1001,7 @@ function preloadStickerPanel() {
         const storedBrokenIds = Array.isArray(res[BROKEN_STICKERS_KEY]) ? res[BROKEN_STICKERS_KEY] : [];
         storedBrokenIds.forEach((previewId) => brokenStickerPreviewIds.add(String(previewId)));
         quickReactionsEnabled = res[QUICK_REACTIONS_ENABLED_KEY] !== false;
+        applyStickerManagementPreferences(res);
 
         const stickerPanel = document.createElement("div");
         stickerPanel.id = "stickerPanel";
@@ -1040,7 +1113,8 @@ function preloadStickerPanel() {
         setupKeyboardNavigation(stickerPanel);
 
         loadStickers().then((stickers) => {
-            currentStickers = stickers;
+            sourceStickers = stickers;
+            currentStickers = visibleManagedStickers(sourceStickers);
             if (typeof global !== 'undefined') {
                 global.currentStickers = currentStickers;
             }
@@ -1068,6 +1142,7 @@ function renderStickerResults(stickerPanel, stickers) {
     }
 
     const availableStickers = tabStickers
+        .filter(isStickerManagedVisible)
         .filter((sticker) => !selectedPack || sticker.pack === selectedPack)
         .filter((sticker) => !brokenStickerPreviewIds.has(sticker.previewId))
         .filter((sticker) => matchesStickerSearch(sticker, stickerSearchQuery));
@@ -1132,7 +1207,7 @@ function renderPackFilters(stickerPanel, stickers) {
         selectedPack = "";
     }
 
-    const options = [{ value: "", name: "All packs" }, ...packs.map((pack) => ({ value: pack, name: pack }))];
+    const options = [{ value: "", name: "All packs" }, ...packs.map((pack) => ({ value: pack, name: (stickerPackPreferences[pack] && stickerPackPreferences[pack].name) || pack }))];
     const chips = options.map(({ value, name }) => {
         const chip = document.createElement("button");
         chip.type = "button";
@@ -1561,7 +1636,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             resetStickerTileCache();
             return fetchStickersFromNetwork();
         }).then((stickers) => {
-            currentStickers = stickers;
+            sourceStickers = stickers;
+            currentStickers = visibleManagedStickers(sourceStickers);
             if (typeof global !== 'undefined') {
                 global.currentStickers = currentStickers;
             }
@@ -1572,8 +1648,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             }
             renderQuickReactions();
 
-            sendResponse({ status: "success", count: stickers.length });
+            sendResponse({ status: "success", count: currentStickers.length });
         });
+        return true;
+    }
+
+    if (message.action === "refresh_sticker_preferences") {
+        refreshStickerManagementPreferences().then((count) => {
+            sendResponse({ status: "success", count });
+        }).catch((error) => sendResponse({ status: "error", error: error && error.message ? error.message : "Could not refresh sticker preferences." }));
         return true;
     }
 
@@ -1598,4 +1681,6 @@ if (typeof global !== "undefined") {
     global.drainStickerImageQueue = drainStickerImageQueue;
     global.getQuickReactionStickers = getQuickReactionStickers;
     global.renderQuickReactions = renderQuickReactions;
+    global.normalizeStickerManagementPreferences = normalizeStickerManagementPreferences;
+    global.visibleManagedStickers = visibleManagedStickers;
 }

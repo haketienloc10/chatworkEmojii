@@ -6,7 +6,7 @@
   "scripts": {
     "sync:extension": "bash scripts/sync-extension.sh",
     "validate:data": "node scripts/validate-data.js",
-    "check:js": "node --check scripts/content.js && node --check scripts/popup.js && node --check scripts/background.js && node --check scripts/validate-data.js",
+    "check:js": "node --check scripts/content.js && node --check scripts/popup.js && node --check scripts/settings.js && node --check scripts/background.js && node --check scripts/validate-data.js",
     "validate": "npm run validate:data && npm run check:js",
     "test": "node test/run-tests.js"
   }

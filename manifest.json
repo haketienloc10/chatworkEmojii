@@ -25,6 +25,7 @@
             "128": "icons/logo.png"
         }
     },
+    "options_page": "settings.html",
     "background": {
         "service_worker": "scripts/background.js"
     },

@@ -18,6 +18,8 @@ structure is healthier than fake product truth.
   sticker picker hiện có.
 - `extension-growth-plan.md`: kế hoạch phase, candidate stories, risk gates và
   validation direction cho định hướng phát triển.
+- `settings-and-sticker-management-proposal.md`: đề xuất Settings riêng, tùy
+  biến popup, sắp xếp sticker và xóa mềm có khôi phục.
 
 ## Update Rule
 

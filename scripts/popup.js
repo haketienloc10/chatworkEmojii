@@ -1,4 +1,4 @@
-const POPUP_STORAGE_KEYS = ["sticker_cache_v2", "sticker_favorites", "sticker_recents", "sticker_imported_v1", "quick_reactions_enabled", "sticker_usage_metrics_v1"];
+const POPUP_STORAGE_KEYS = ["sticker_cache_v2", "sticker_favorites", "sticker_recents", "sticker_imported_v1", "quick_reactions_enabled", "sticker_usage_metrics_v1", "sticker_popup_preferences_v1", "sticker_trash_v1"];
 const POPUP_IMPORTED_STICKERS_KEY = "sticker_imported_v1";
 const POPUP_BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const POPUP_USAGE_METRICS_KEY = "sticker_usage_metrics_v1";
@@ -128,6 +128,30 @@ function renderDashboard(summary) {
     setText("usageImportCount", usage.imports);
 }
 
+function normalizePopupPreferences(value) {
+    const preferences = value && typeof value === "object" ? value : {};
+    return {
+        showStats: preferences.showStats !== false,
+        showQuickReactions: preferences.showQuickReactions !== false,
+        showUpload: preferences.showUpload !== false,
+        showCacheControls: preferences.showCacheControls !== false,
+        showUsage: preferences.showUsage !== false,
+    };
+}
+
+function renderPopupPreferences(storageData) {
+    const preferences = normalizePopupPreferences(storageData.sticker_popup_preferences_v1);
+    const setVisible = (id, visible) => {
+        const node = document.getElementById(id);
+        if (node) node.hidden = !visible;
+    };
+    setVisible("popupStats", preferences.showStats);
+    setVisible("quickReactionsEnabled", preferences.showQuickReactions);
+    setVisible("popupImportPanel", preferences.showUpload);
+    ["reloadStickerData", "clearStickerCache"].forEach((id) => setVisible(id, preferences.showCacheControls));
+    ["usageInsertCount", "usageQuickRate", "usagePackFilterCount", "usageImportCount", "clearLocalUsage"].forEach((id) => setVisible(id, preferences.showUsage));
+}
+
 function renderQuickReactionsToggle(storageData) {
     const toggle = document.getElementById("quickReactionsEnabled");
     if (toggle) {
@@ -158,7 +182,14 @@ function refreshDashboard() {
             usage: summarizeLocalUsage(storageData[POPUP_USAGE_METRICS_KEY]),
         });
         renderQuickReactionsToggle(storageData);
+        renderPopupPreferences(storageData);
         return summary;
+    });
+}
+
+function openSettings() {
+    return chrome.runtime.openOptionsPage().catch(() => {
+        window.open(chrome.runtime.getURL("settings.html"), "_blank");
     });
 }
 
@@ -305,6 +336,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const uploadButton = document.getElementById("uploadSticker");
     const quickReactionsToggle = document.getElementById("quickReactionsEnabled");
     const clearUsageButton = document.getElementById("clearLocalUsage");
+    const settingsButton = document.getElementById("openSettings");
 
     if (!getInputValue("importPack")) {
         setInputValue("importPack", defaultPackName());
@@ -335,6 +367,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (clearUsageButton) {
         clearUsageButton.addEventListener("click", clearLocalUsageMetrics);
     }
+    if (settingsButton) settingsButton.addEventListener("click", openSettings);
 });
 
 if (typeof global !== "undefined") {
@@ -347,4 +380,5 @@ if (typeof global !== "undefined") {
     global.setQuickReactionsEnabledFromPopup = setQuickReactionsEnabled;
     global.summarizeLocalUsage = summarizeLocalUsage;
     global.clearLocalUsageMetricsFromPopup = clearLocalUsageMetrics;
+    global.normalizePopupPreferences = normalizePopupPreferences;
 }

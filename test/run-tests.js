@@ -79,10 +79,19 @@ const popupScriptPath = path.resolve(__dirname, '../scripts/popup.js');
 const popupScriptCode = fs.readFileSync(popupScriptPath, 'utf8');
 vm.runInThisContext(popupScriptCode);
 
-// 5. Load suite.js which registers the tests
+// 5. Load only the pure settings ordering helper, without registering Options-page listeners.
+const settingsScriptPath = path.resolve(__dirname, '../scripts/settings.js');
+const settingsScriptCode = fs.readFileSync(settingsScriptPath, 'utf8');
+const settingsOrderHelper = settingsScriptCode.slice(
+  settingsScriptCode.indexOf('function nextOrder'),
+  settingsScriptCode.indexOf('function moveOrder')
+);
+vm.runInThisContext(`${settingsOrderHelper}\nglobal.settingsNextOrder = nextOrder;`);
+
+// 6. Load suite.js which registers the tests
 require('./suite');
 
-// 6. Run tests sequentially
+// 7. Run tests sequentially
 async function runAllTests() {
   console.log(`\n==================================================`);
   console.log(`🚀 Starting Chatwork Sticker Extension E2E Test Suite`);

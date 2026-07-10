@@ -10,9 +10,10 @@ cp -f \
   "${ROOT_DIR}/manifest.json" \
   "${ROOT_DIR}/popup.html" \
   "${ROOT_DIR}/styles.css" \
-  "${ROOT_DIR}/README.md" \
   "${ROOT_DIR}/package.json" \
   "${ROOT_DIR}/getImage.js" \
+  "${ROOT_DIR}/settings.html" \
+  "${ROOT_DIR}/styles.css" \
   "${TARGET_DIR}/"
 
 for directory in scripts data icons; do

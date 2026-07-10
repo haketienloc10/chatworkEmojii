@@ -60,6 +60,35 @@
     overflow-x: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+}
+
+/* Keep the horizontal pack scroller visually quiet until it is in use. */
+.sticker-pack-filters::-webkit-scrollbar {
+    height: 6px;
+}
+
+.sticker-pack-filters::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sticker-pack-filters::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+}
+
+.sticker-pack-filters:hover,
+.sticker-pack-filters:focus-within {
+    scrollbar-color: rgba(107, 114, 128, 0.38) transparent;
+}
+
+.sticker-pack-filters:hover::-webkit-scrollbar-thumb,
+.sticker-pack-filters:focus-within::-webkit-scrollbar-thumb {
+    background: rgba(107, 114, 128, 0.38);
+}
+
+.sticker-pack-filters::-webkit-scrollbar-thumb:active {
+    background: rgba(107, 114, 128, 0.58);
 }
 
 .sticker-pack-chip {

@@ -300,6 +300,22 @@ test('Feature 1: Favorite hit target stays compact and separate from sticker sel
   assert.equal(getCssDeclaration(favoriteRule, 'padding'), '0', "Favorite button should not expand its hit target with padding");
 });
 
+test('Picker pack scrollbar stays subtle until the user interacts with it', () => {
+  const defaultRule = getCssRule('.sticker-pack-filters');
+  const scrollbarRule = getCssRule('.sticker-pack-filters::-webkit-scrollbar');
+  const thumbRule = getCssRule('.sticker-pack-filters::-webkit-scrollbar-thumb');
+  const activeThumbRule = getCssRule('.sticker-pack-filters::-webkit-scrollbar-thumb:active');
+  const css = fs.readFileSync(path.resolve(__dirname, '../styles.css'), 'utf8');
+
+  assert.equal(getCssDeclaration(defaultRule, 'scrollbar-width'), 'thin', 'Firefox scrollbar should stay thin');
+  assert.equal(getCssDeclaration(defaultRule, 'scrollbar-color'), 'transparent transparent', 'Scrollbar should be quiet at rest');
+  assert.equal(getCssDeclaration(scrollbarRule, 'height'), '6px', 'Chromium scrollbar should be compact');
+  assert.equal(getCssDeclaration(thumbRule, 'border-radius'), '999px', 'Scrollbar thumb should be rounded');
+  assert.equal(getCssDeclaration(thumbRule, 'background'), 'transparent', 'Scrollbar thumb should be quiet at rest');
+  assert.equal(getCssDeclaration(activeThumbRule, 'background'), 'rgba(107, 114, 128, 0.58)', 'Scrollbar thumb should become clearer while scrolling');
+  assert.ok(css.includes('.sticker-pack-filters:hover::-webkit-scrollbar-thumb'), 'Scrollbar thumb should become visible on hover');
+});
+
 // --- FEATURE 2: KEYBOARD NAVIGATION ---
 
 test('Feature 2: Focusing search input when "/" is pressed', async () => {
@@ -1706,4 +1722,40 @@ test('Tier 4 Scenario 5: Error and Recovery flow', async () => {
   triggerKeydown("Enter");
   
   assert.equal(getChatValue().trim(), targetSticker.insertText, "Should recover and insert the correct non-broken sticker");
+});
+
+test('Settings preferences: trashed stickers leave picker, favorites, recents, and Quick Reactions', async () => {
+  await openPanel();
+  const removed = global.currentStickers[0];
+  global.favorites.add(removed.previewId);
+  global.recents.push(removed);
+  await chrome.storage.local.set({
+    sticker_favorites: [removed.previewId],
+    sticker_recents: [removed],
+    sticker_trash_v1: [{ previewId: removed.previewId, deletedAt: new Date().toISOString(), snapshot: removed }]
+  });
+  const response = await chrome.tabs.sendMessage(1, { action: 'refresh_sticker_preferences' });
+  assert.equal(response.status, 'success', 'Settings refresh should be acknowledged');
+  assert.ok(!global.currentStickers.some((sticker) => sticker.previewId === removed.previewId), 'Trashed sticker should leave picker source');
+  assert.ok(!global.favorites.has(removed.previewId), 'Trashed sticker should leave favorites');
+  assert.ok(!global.recents.some((sticker) => sticker.previewId === removed.previewId), 'Trashed sticker should leave recents');
+  assert.ok(!global.getQuickReactionStickers().some((sticker) => sticker.previewId === removed.previewId), 'Trashed sticker should leave Quick Reactions');
+});
+
+test('Settings preferences: custom order wins while unlisted stickers retain source order', async () => {
+  await openPanel();
+  const source = global.currentStickers.slice(0, 3);
+  await chrome.storage.local.set({ sticker_custom_order_v1: [source[2].previewId, source[0].previewId] });
+  await chrome.tabs.sendMessage(1, { action: 'refresh_sticker_preferences' });
+  assert.equal(global.currentStickers[0].previewId, source[2].previewId, 'First custom id should lead picker');
+  assert.equal(global.currentStickers[1].previewId, source[0].previewId, 'Second custom id should follow');
+  assert.equal(global.currentStickers[2].previewId, source[1].previewId, 'Unlisted sticker should retain its source-relative position');
+});
+
+test('Settings ordering: move up and down shift exactly one position', () => {
+  const ids = ['a', 'b', 'c'];
+  assert.deepEqual(global.settingsNextOrder(ids, 'b', -1), ['b', 'a', 'c']);
+  assert.deepEqual(global.settingsNextOrder(ids, 'b', 1), ['a', 'c', 'b']);
+  assert.deepEqual(global.settingsNextOrder(ids, 'a', -1), ['a', 'b', 'c']);
+  assert.deepEqual(global.settingsNextOrder(ids, 'c', 1), ['a', 'b', 'c']);
 });
