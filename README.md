@@ -46,10 +46,16 @@ Use the extension popup to check current sticker state:
 - `Cache`: whether sticker metadata is currently cached.
 - `Favorite`: saved favorite stickers.
 - `Recent`: recently inserted stickers.
+- `7d inserts`, `Quick share`, `7d pack filters`, `7d imports`: aggregate usage
+  metrics stored only on this device for the last seven days.
 
 Click `Reload data` after changing files in `data/` while Chatwork is open.
 Click `Clear sticker cache` to remove cached sticker metadata and broken-image
 runtime state. Favorites and recents are kept.
+Click `Clear local usage data` to remove only aggregate usage metrics; sticker
+cache, favorites, recents, imported stickers, and preferences are kept. These
+metrics never contain Chatwork messages or sticker identifiers and are not sent
+over the network.
 
 The popup can upload a new sticker through the active Chatwork tab:
 

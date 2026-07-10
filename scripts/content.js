@@ -10,6 +10,9 @@ const BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
 const IMPORTED_STICKERS_KEY = "sticker_imported_v1";
 const QUICK_REACTIONS_ENABLED_KEY = "quick_reactions_enabled";
 const QUICK_REACTIONS_LIMIT = 8;
+const USAGE_METRICS_KEY = "sticker_usage_metrics_v1";
+const USAGE_METRICS_VERSION = 1;
+const USAGE_METRICS_RETENTION_DAYS = 90;
 const CHATWORK_UPLOAD_CONFIG_KEY = "chatwork_upload_config_v1";
 const CHATWORK_ORIGIN = "https://www.chatwork.com/";
 const CHATWORK_DEFAULT_UPLOAD_URL = "https://www.chatwork.com/gateway/upload_file.php";
@@ -30,6 +33,7 @@ let selectedPack = "";
 let favorites = new Set();
 let recents = [];
 let quickReactionsEnabled = true;
+let usageMetricsWrite = Promise.resolve();
 let stickerImageObserver = null;
 let stickerImageQueue = [];
 let activeStickerImageLoads = 0;
@@ -70,6 +74,70 @@ function setLocalStorageValue(data) {
 
 function removeLocalStorageValue(keys) {
     return withInvalidatedContextFallback(() => chrome.storage.local.remove(keys), false);
+}
+
+function usageMetricDate(date = new Date()) {
+    return date.toISOString().slice(0, 10);
+}
+
+function emptyUsageMetrics() {
+    return { version: USAGE_METRICS_VERSION, days: {} };
+}
+
+function normalizeUsageMetrics(value, now = new Date()) {
+    const metrics = emptyUsageMetrics();
+    const days = value && value.days && typeof value.days === "object" ? value.days : {};
+    const earliest = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - USAGE_METRICS_RETENTION_DAYS + 1));
+
+    Object.entries(days).forEach(([date, counts]) => {
+        const parsedDate = new Date(`${date}T00:00:00.000Z`);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsedDate.getTime()) || parsedDate < earliest) return;
+
+        metrics.days[date] = {
+            inserts: Math.max(0, Number(counts && counts.inserts) || 0),
+            quickReactionInserts: Math.max(0, Number(counts && counts.quickReactionInserts) || 0),
+            favoriteReuses: Math.max(0, Number(counts && counts.favoriteReuses) || 0),
+            packFilterSelections: Math.max(0, Number(counts && counts.packFilterSelections) || 0),
+            imports: Math.max(0, Number(counts && counts.imports) || 0),
+        };
+    });
+
+    return metrics;
+}
+
+function recordUsageMetric(metric, now = new Date()) {
+    const supportedMetrics = new Set(["inserts", "quickReactionInserts", "favoriteReuses", "packFilterSelections", "imports"]);
+    if (!supportedMetrics.has(metric)) return Promise.resolve(false);
+
+    usageMetricsWrite = usageMetricsWrite
+        .then(() => getLocalStorageValue(USAGE_METRICS_KEY, {}))
+        .then((storageData) => {
+            const metrics = normalizeUsageMetrics(storageData[USAGE_METRICS_KEY], now);
+            const date = usageMetricDate(now);
+            const current = metrics.days[date] || {
+                inserts: 0,
+                quickReactionInserts: 0,
+                favoriteReuses: 0,
+                packFilterSelections: 0,
+                imports: 0,
+            };
+            current[metric] += 1;
+            metrics.days[date] = current;
+            return setLocalStorageValue({ [USAGE_METRICS_KEY]: metrics });
+        })
+        .catch((error) => {
+            if (isExtensionContextInvalidatedError(error)) return false;
+            console.warn("Could not save local usage metric.", error);
+            return false;
+        });
+
+    return usageMetricsWrite;
+}
+
+function recordStickerInsertUsage(sticker, source) {
+    recordUsageMetric("inserts");
+    if (source === "quick-reaction") recordUsageMetric("quickReactionInserts");
+    if (sticker && favorites.has(sticker.previewId)) recordUsageMetric("favoriteReuses");
 }
 
 function ready(callback) {
@@ -566,6 +634,7 @@ function saveImportedSticker(sticker) {
                     renderStickerResults(stickerPanel, currentStickers);
                 }
 
+                recordUsageMetric("imports");
                 return { ok: true, sticker };
             });
     });
@@ -741,6 +810,7 @@ function renderQuickReactions() {
         button.addEventListener("click", () => {
             insertStickerToChat(sticker.insertText);
             addToRecents(sticker);
+            recordStickerInsertUsage(sticker, "quick-reaction");
         });
         return button;
     });
@@ -949,6 +1019,7 @@ function preloadStickerPanel() {
             if (stickerObj) {
                 insertStickerToChat(stickerObj.insertText);
                 addToRecents(stickerObj);
+                recordStickerInsertUsage(stickerObj, "picker");
                 closeStickerPanel();
             }
         });
@@ -1075,6 +1146,7 @@ function renderPackFilters(stickerPanel, stickers) {
             // outside-click handler receive an event whose target is detached.
             event.stopPropagation();
             selectedPack = value;
+            recordUsageMetric("packFilterSelections");
             renderPackFilters(stickerPanel, currentStickers);
             renderStickerResults(stickerPanel, currentStickers);
         });
@@ -1173,6 +1245,7 @@ function createStickerTile(sticker) {
         if (tile.disabled) return;
         insertStickerToChat(sticker.insertText);
         addToRecents(sticker);
+        recordStickerInsertUsage(sticker, "picker");
         closeStickerPanel();
     });
 

@@ -939,7 +939,12 @@ function mountPopupDashboard() {
     "favoriteCount",
     "recentCount",
     "importedCount",
+    "usageInsertCount",
+    "usageQuickRate",
+    "usagePackFilterCount",
+    "usageImportCount",
     "popupStatus",
+    "clearLocalUsage",
     "uploadFile",
     "importName",
     "importTags",
@@ -948,7 +953,7 @@ function mountPopupDashboard() {
   ids.forEach((id) => {
     const inputIds = ["uploadFile", "importName", "importTags", "importPack"];
     const node = document.createElement(
-      id === "popupStatus" ? "p" : inputIds.includes(id) ? "input" : "span"
+      id === "popupStatus" ? "p" : id === "clearLocalUsage" ? "button" : inputIds.includes(id) ? "input" : "span"
     );
     node.id = id;
     document.body.appendChild(node);
@@ -995,6 +1000,79 @@ test('Feature 5: Popup dashboard renders counts', async () => {
   assert.equal(document.querySelector("#favoriteCount").textContent, "2");
   assert.equal(document.querySelector("#recentCount").textContent, "1");
   assert.equal(document.querySelector("#importedCount").textContent, "1");
+});
+
+test('Extension growth: local usage metrics retain aggregate daily counts only', async () => {
+  const now = new Date('2026-07-10T10:00:00.000Z');
+  await global.recordUsageMetric('inserts', now);
+  await global.recordUsageMetric('quickReactionInserts', now);
+  await global.recordUsageMetric('favoriteReuses', now);
+  await global.recordUsageMetric('packFilterSelections', now);
+
+  const metrics = (await chrome.storage.local.get('sticker_usage_metrics_v1')).sticker_usage_metrics_v1;
+  assert.deepEqual(metrics.days['2026-07-10'], {
+    inserts: 1,
+    quickReactionInserts: 1,
+    favoriteReuses: 1,
+    packFilterSelections: 1,
+    imports: 0
+  });
+  assert.equal(Object.prototype.hasOwnProperty.call(metrics.days['2026-07-10'], 'previewId'), false, 'Usage metrics must not store sticker identifiers');
+});
+
+test('Extension growth: local usage prunes expired days and popup summarizes the latest seven days', async () => {
+  const now = new Date('2026-07-10T10:00:00.000Z');
+  await chrome.storage.local.set({
+    sticker_usage_metrics_v1: {
+      version: 1,
+      days: {
+        '2026-04-01': { inserts: 99 },
+        '2026-07-04': { inserts: 2, quickReactionInserts: 1, favoriteReuses: 1, packFilterSelections: 2, imports: 1 },
+        '2026-07-10': { inserts: 3, quickReactionInserts: 2, favoriteReuses: 2, packFilterSelections: 1, imports: 1 }
+      }
+    }
+  });
+
+  await global.recordUsageMetric('imports', now);
+  const metrics = (await chrome.storage.local.get('sticker_usage_metrics_v1')).sticker_usage_metrics_v1;
+  assert.equal(metrics.days['2026-04-01'], undefined, 'Metrics older than 90 days should be pruned');
+
+  const summary = global.summarizeLocalUsage(metrics, now);
+  assert.deepEqual(summary, {
+    inserts: 5,
+    quickReactionInserts: 3,
+    favoriteReuses: 3,
+    packFilterSelections: 3,
+    imports: 3,
+    quickReactionRate: 60
+  });
+});
+
+test('Extension growth: clearing local usage keeps sticker data and preferences', async () => {
+  mountPopupDashboard();
+  await chrome.storage.local.set({
+    sticker_usage_metrics_v1: { version: 1, days: { '2026-07-10': { inserts: 2 } } },
+    sticker_cache_v2: [{ previewId: '1' }],
+    sticker_favorites: ['1'],
+    sticker_recents: [{ previewId: '1' }],
+    quick_reactions_enabled: false
+  });
+
+  const cleared = await global.clearLocalUsageMetricsFromPopup();
+  const storage = await chrome.storage.local.get([
+    'sticker_usage_metrics_v1',
+    'sticker_cache_v2',
+    'sticker_favorites',
+    'sticker_recents',
+    'quick_reactions_enabled'
+  ]);
+  assert.equal(cleared, true);
+  assert.equal(storage.sticker_usage_metrics_v1, undefined);
+  assert.deepEqual(storage.sticker_cache_v2, [{ previewId: '1' }]);
+  assert.deepEqual(storage.sticker_favorites, ['1']);
+  assert.deepEqual(storage.sticker_recents, [{ previewId: '1' }]);
+  assert.equal(storage.quick_reactions_enabled, false);
+  assert.equal(document.querySelector('#usageInsertCount').textContent, '0');
 });
 
 test('Feature 5: Popup refresh ignores invalidated extension context', async () => {

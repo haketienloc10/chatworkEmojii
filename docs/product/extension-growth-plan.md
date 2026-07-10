@@ -50,6 +50,10 @@ và refresh.
 Success signal: Quick Reactions chiếm ít nhất 30% lượt chèn trong nhóm thử
 nghiệm; nếu không gửi telemetry, đánh giá qua dashboard local và feedback.
 
+`US-008-local-usage-baseline` đã hoàn tất: dashboard hiển thị aggregate 7 ngày
+cho lượt chèn, tỷ lệ Quick Reactions, filter pack và import. Dữ liệu chỉ là bộ
+đếm theo ngày trên thiết bị, giữ tối đa 90 ngày và có thể xóa độc lập.
+
 ## Phase 2 — Local Pack Manager Và Chia Sẻ Thủ Công
 
 Mục tiêu: tổ chức và thử chia sẻ pack mà không có backend.

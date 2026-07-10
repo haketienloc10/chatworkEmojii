@@ -1,6 +1,7 @@
-const POPUP_STORAGE_KEYS = ["sticker_cache_v2", "sticker_favorites", "sticker_recents", "sticker_imported_v1", "quick_reactions_enabled"];
+const POPUP_STORAGE_KEYS = ["sticker_cache_v2", "sticker_favorites", "sticker_recents", "sticker_imported_v1", "quick_reactions_enabled", "sticker_usage_metrics_v1"];
 const POPUP_IMPORTED_STICKERS_KEY = "sticker_imported_v1";
 const POPUP_BROKEN_STICKERS_KEY = "sticker_broken_preview_ids_v1";
+const POPUP_USAGE_METRICS_KEY = "sticker_usage_metrics_v1";
 const POPUP_CHATWORK_ORIGIN = "https://www.chatwork.com/";
 
 function isExtensionContextInvalidatedError(error) {
@@ -39,6 +40,36 @@ function setPopupStorage(data) {
 
 function countArray(value) {
     return Array.isArray(value) ? value.length : 0;
+}
+
+function usageCounts(value) {
+    return {
+        inserts: Math.max(0, Number(value && value.inserts) || 0),
+        quickReactionInserts: Math.max(0, Number(value && value.quickReactionInserts) || 0),
+        favoriteReuses: Math.max(0, Number(value && value.favoriteReuses) || 0),
+        packFilterSelections: Math.max(0, Number(value && value.packFilterSelections) || 0),
+        imports: Math.max(0, Number(value && value.imports) || 0),
+    };
+}
+
+function summarizeLocalUsage(metrics, now = new Date()) {
+    const summary = usageCounts();
+    const days = metrics && metrics.days && typeof metrics.days === "object" ? metrics.days : {};
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6));
+
+    Object.entries(days).forEach(([date, counts]) => {
+        const parsedDate = new Date(`${date}T00:00:00.000Z`);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsedDate.getTime()) || parsedDate < start) return;
+        const normalized = usageCounts(counts);
+        Object.keys(summary).forEach((key) => {
+            summary[key] += normalized[key];
+        });
+    });
+
+    return {
+        ...summary,
+        quickReactionRate: summary.inserts > 0 ? Math.round((summary.quickReactionInserts / summary.inserts) * 100) : 0,
+    };
 }
 
 function summarizeDashboard(storageData) {
@@ -80,11 +111,21 @@ function setInputValue(id, value) {
 }
 
 function renderDashboard(summary) {
+    const usage = summary.usage || {
+        inserts: 0,
+        quickReactionRate: 0,
+        packFilterSelections: 0,
+        imports: 0,
+    };
     setText("stickerCount", summary.stickerCount);
     setText("cacheState", summary.cacheState);
     setText("favoriteCount", summary.favoriteCount);
     setText("recentCount", summary.recentCount);
     setText("importedCount", summary.importedCount);
+    setText("usageInsertCount", usage.inserts);
+    setText("usageQuickRate", `${usage.quickReactionRate}%`);
+    setText("usagePackFilterCount", usage.packFilterSelections);
+    setText("usageImportCount", usage.imports);
 }
 
 function renderQuickReactionsToggle(storageData) {
@@ -112,7 +153,10 @@ function defaultPackName() {
 function refreshDashboard() {
     return getPopupStorage(POPUP_STORAGE_KEYS, {}).then((storageData) => {
         const summary = summarizeDashboard(storageData);
-        renderDashboard(summary);
+        renderDashboard({
+            ...summary,
+            usage: summarizeLocalUsage(storageData[POPUP_USAGE_METRICS_KEY]),
+        });
         renderQuickReactionsToggle(storageData);
         return summary;
     });
@@ -179,6 +223,16 @@ function reloadStickerData() {
                 ? result.response.count
                 : summary.stickerCount;
             setStatus(`Sticker data reloaded: ${count} items.`);
+        });
+}
+
+function clearLocalUsageMetrics() {
+    setStatus("Clearing local usage data...");
+    return removePopupStorage(POPUP_USAGE_METRICS_KEY)
+        .then((removed) => refreshDashboard().then(() => removed))
+        .then((removed) => {
+            setStatus(removed === false ? "Could not clear local usage data." : "Local usage data cleared. Sticker data and preferences were kept.");
+            return removed !== false;
         });
 }
 
@@ -250,6 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const reloadButton = document.getElementById("reloadStickerData");
     const uploadButton = document.getElementById("uploadSticker");
     const quickReactionsToggle = document.getElementById("quickReactionsEnabled");
+    const clearUsageButton = document.getElementById("clearLocalUsage");
 
     if (!getInputValue("importPack")) {
         setInputValue("importPack", defaultPackName());
@@ -276,6 +331,10 @@ document.addEventListener("DOMContentLoaded", function () {
             setQuickReactionsEnabled(quickReactionsToggle.checked);
         });
     }
+
+    if (clearUsageButton) {
+        clearUsageButton.addEventListener("click", clearLocalUsageMetrics);
+    }
 });
 
 if (typeof global !== "undefined") {
@@ -286,4 +345,6 @@ if (typeof global !== "undefined") {
     global.uploadStickerFilePayloadFromPopup = uploadStickerFilePayload;
     global.uploadSelectedStickerFromPopup = uploadSelectedStickerFromPopup;
     global.setQuickReactionsEnabledFromPopup = setQuickReactionsEnabled;
+    global.summarizeLocalUsage = summarizeLocalUsage;
+    global.clearLocalUsageMetricsFromPopup = clearLocalUsageMetrics;
 }
