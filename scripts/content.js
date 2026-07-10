@@ -26,6 +26,7 @@ let currentStickers = [];
 let stickerSearchQuery = "";
 let stickerSearchRenderTimer = null;
 let activeTab = "all";
+let selectedPack = "";
 let favorites = new Set();
 let recents = [];
 let quickReactionsEnabled = true;
@@ -33,6 +34,7 @@ let stickerImageObserver = null;
 let stickerImageQueue = [];
 let activeStickerImageLoads = 0;
 let stickerImageCacheGeneration = 0;
+let stickerButtonRefreshTimer = null;
 const stickerTileCache = new Map();
 
 
@@ -837,6 +839,7 @@ function preloadStickerPanel() {
     if (document.querySelector("#stickerPanel")) return;
 
     resetStickerTileCache();
+    selectedPack = "";
 
     getLocalStorageValue(["sticker_favorites", "sticker_recents", BROKEN_STICKERS_KEY, QUICK_REACTIONS_ENABLED_KEY], {}).then((res) => {
         const storedFavs = res.sticker_favorites || [];
@@ -956,7 +959,11 @@ function preloadStickerPanel() {
         resultGrid.className = "sticker-grid";
         resultGrid.dataset.role = "sticker-results";
 
-        stickerPanel.append(header, resultGrid);
+        const packFilters = document.createElement("div");
+        packFilters.className = "sticker-pack-filters";
+        packFilters.setAttribute("aria-label", "Filter stickers by pack");
+
+        stickerPanel.append(header, packFilters, resultGrid);
         document.body.appendChild(stickerPanel);
 
         setupKeyboardNavigation(stickerPanel);
@@ -966,6 +973,7 @@ function preloadStickerPanel() {
             if (typeof global !== 'undefined') {
                 global.currentStickers = currentStickers;
             }
+            renderPackFilters(stickerPanel, currentStickers);
             renderStickerResults(stickerPanel, currentStickers);
             renderQuickReactions();
         });
@@ -989,6 +997,7 @@ function renderStickerResults(stickerPanel, stickers) {
     }
 
     const availableStickers = tabStickers
+        .filter((sticker) => !selectedPack || sticker.pack === selectedPack)
         .filter((sticker) => !brokenStickerPreviewIds.has(sticker.previewId))
         .filter((sticker) => matchesStickerSearch(sticker, stickerSearchQuery));
 
@@ -1033,6 +1042,46 @@ function renderStickerResults(stickerPanel, stickers) {
     if (stickerPanel.style.display !== "none") {
         positionStickerPanel(stickerPanel);
     }
+}
+
+function getStickerPacks(stickers) {
+    return Array.from(new Set(
+        stickers
+            .map((sticker) => typeof sticker.pack === "string" ? sticker.pack.trim() : "")
+            .filter(Boolean)
+    )).sort((left, right) => left.localeCompare(right));
+}
+
+function renderPackFilters(stickerPanel, stickers) {
+    const packFilters = stickerPanel.querySelector(".sticker-pack-filters");
+    if (!packFilters) return;
+
+    const packs = getStickerPacks(stickers);
+    if (selectedPack && !packs.includes(selectedPack)) {
+        selectedPack = "";
+    }
+
+    const options = [{ value: "", name: "All packs" }, ...packs.map((pack) => ({ value: pack, name: pack }))];
+    const chips = options.map(({ value, name }) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "sticker-pack-chip";
+        chip.textContent = name;
+        chip.setAttribute("aria-label", `Filter stickers by ${name}`);
+        chip.setAttribute("aria-pressed", String(selectedPack === value));
+        if (selectedPack === value) chip.classList.add("active");
+        chip.addEventListener("click", (event) => {
+            // Rendering replaces the clicked chip. Do not let the document-level
+            // outside-click handler receive an event whose target is detached.
+            event.stopPropagation();
+            selectedPack = value;
+            renderPackFilters(stickerPanel, currentStickers);
+            renderStickerResults(stickerPanel, currentStickers);
+        });
+        return chip;
+    });
+
+    packFilters.replaceChildren(...chips);
 }
 
 function getOrCreateStickerTile(sticker) {
@@ -1359,6 +1408,10 @@ function positionStickerPanel(stickerPanel) {
     const top = openBelow ? buttonRect.bottom + 8 : buttonRect.top - panelHeight - 8;
 
     stickerPanel.style.width = `${panelWidth}px`;
+    // A flex child can only consume the remaining space when its parent has a
+    // definite height. Without this, the All grid grows beyond max-height and
+    // the panel's overflow rule clips the lower stickers.
+    stickerPanel.style.height = `${panelMaxHeight}px`;
     stickerPanel.style.maxHeight = `${panelMaxHeight}px`;
     stickerPanel.style.left = `${left}px`;
     stickerPanel.style.top = `${Math.max(STICKER_PANEL_MARGIN, top)}px`;
@@ -1383,17 +1436,19 @@ function observeChatContent() {
     addStickerButton();
 
     const observer = new MutationObserver((mutationsList) => {
-        for (const mutation of mutationsList) {
-            if (mutation.type === "childList") {
-                setTimeout(() => {
-                    const stickerPanel = document.querySelector("#stickerPanel");
-                    if (stickerPanel) {
-                        closeStickerPanel();
-                    }
-                    addStickerButton();
-                }, 100);
-            }
-        }
+        if (!mutationsList.some((mutation) => mutation.type === "childList")) return;
+
+        // Chatwork can replace its toolbar while the picker is open. Refresh
+        // the trigger button if needed, but never close the picker for a
+        // Chatwork DOM update: only an explicit sticker selection, Escape, or
+        // outside click is allowed to close it.
+        clearTimeout(stickerButtonRefreshTimer);
+        stickerButtonRefreshTimer = setTimeout(() => {
+            stickerButtonRefreshTimer = null;
+            if (document.querySelector("#_sticker")) return;
+
+            addStickerButton();
+        }, 100);
     });
 
     observer.observe(chatContent, { childList: true, subtree: true, characterData: false });

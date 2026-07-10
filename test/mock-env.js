@@ -281,22 +281,25 @@ class MockNode {
 
   dispatchEvent(event) {
     event.target = this;
+    const propagationPath = [];
     let current = this;
     while (current) {
-      const typeListeners = current.listeners[event.type];
+      propagationPath.push(current);
+      current = current.parentNode;
+    }
+    for (const currentTarget of propagationPath) {
+      const typeListeners = currentTarget.listeners[event.type];
       if (typeListeners) {
         for (const { listener } of typeListeners) {
           try {
-            listener.call(current, event);
+            listener.call(currentTarget, event);
           } catch (e) {
             console.error('Error in event listener:', e);
           }
           if (event._stoppedImmediatePropagation) break;
         }
       }
-      if (event.bubbles && !event._stoppedPropagation) {
-        current = current.parentNode;
-      } else {
+      if (!event.bubbles || event._stoppedPropagation) {
         break;
       }
     }

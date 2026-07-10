@@ -131,6 +131,19 @@ test('Feature 1: Switching between tabs (All, Recent, Favorite)', async () => {
   assert.ok(getVisibleTiles().length > 0, "All tab should show stickers");
 });
 
+test('Picker remains open when Chatwork replaces its toolbar while switching tabs', async () => {
+  global.observeChatContent();
+  await openPanel();
+
+  document.querySelector('.sticker-tab-recent').click();
+  const stickerButton = document.querySelector('#_sticker');
+  stickerButton.parentNode.parentNode.parentNode.removeChild(stickerButton.parentNode.parentNode);
+  await new Promise(resolve => setTimeout(resolve, 120));
+
+  assert.equal(global.activeTab, 'recent', 'Picker should retain the selected tab');
+  assert.equal(document.querySelector('#stickerPanel').style.display, 'flex', 'Picker should remain open after Chatwork replaces the toolbar');
+});
+
 test('Feature 1: Adding a sticker to Recents (uniqueness and top priority)', async () => {
   await openPanel();
   const tiles = getVisibleTiles();
@@ -399,6 +412,40 @@ test('Feature 2: Searching and clearing search preserves loaded sticker DOM', as
   assert.equal(restoredTile.querySelector(".sticker-img"), originalImage, "Search filtering should reuse the loaded image");
 });
 
+test('Pack filter: combines with search and reuses cached sticker tiles', async () => {
+  await openPanel();
+  await new Promise(resolve => setTimeout(resolve, 20));
+
+  const target = global.currentStickers.find((sticker) => sticker.pack);
+  assert.ok(target, 'Fixture should provide a sticker with a pack');
+  const originalTile = getAllTiles().find((tile) => tile.dataset.previewId === target.previewId);
+  assert.ok(originalTile, 'Target sticker tile should be rendered before filtering');
+
+  const chips = Array.from(document.querySelectorAll('.sticker-pack-chip'));
+  const packChip = chips.find((chip) => chip.textContent === target.pack);
+  assert.ok(packChip, 'Picker should render a chip for each available pack');
+  packChip.click();
+
+  assert.equal(document.querySelector('#stickerPanel').style.display, 'flex', 'Selecting a pack must not be treated as an outside click after the chip is re-rendered');
+
+  const selectedPackChip = Array.from(document.querySelectorAll('.sticker-pack-chip')).find((chip) => chip.textContent === target.pack);
+  assert.equal(selectedPackChip.getAttribute('aria-pressed'), 'true', 'Selected pack chip should expose pressed state');
+  assert.ok(getVisibleTiles().every((tile) => tile._stickerData.pack === target.pack), 'Pack filter should only show the selected pack');
+
+  await triggerSearch(target.name);
+  assert.equal(getVisibleTiles().length, 1, 'Search should further filter selected pack results');
+  assert.equal(getVisibleTiles()[0], originalTile, 'Pack/search filtering should reuse the existing tile');
+
+  await triggerSearch('no-such-pack-result');
+  assert.ok(document.querySelector('.sticker-empty'), 'Combined pack/search empty state should render');
+
+  const allPacksChip = document.querySelector('.sticker-pack-chip');
+  allPacksChip.click();
+  await triggerSearch('');
+  const restoredTile = getAllTiles().find((tile) => tile.dataset.previewId === target.previewId);
+  assert.equal(restoredTile, originalTile, 'Clearing pack filter should keep the cached tile instance');
+});
+
 test('Feature 2: Toggling favorite preserves the current sticker DOM', async () => {
   await openPanel();
   await new Promise(resolve => setTimeout(resolve, 20));
@@ -423,6 +470,7 @@ test('Feature 2: Panel left edge anchors to sticker button', async () => {
 
   const panel = document.querySelector("#stickerPanel");
   assert.equal(panel.style.left, "300px", "Panel should start at the sticker button left edge");
+  assert.equal(panel.style.height, "420px", "Panel should have a definite height so the sticker grid can scroll instead of being clipped");
 });
 
 test('Feature 2: Outside click closes panel', async () => {
