@@ -14,6 +14,10 @@ structure is healthier than fake product truth.
 
 - `extension-roadmap.md`: lộ trình cải tiến và phát triển cho Chatwork sticker
   extension.
+- `extension-growth-proposal.md`: định hướng phát triển ưu tiên sau nền tảng
+  sticker picker hiện có.
+- `extension-growth-plan.md`: kế hoạch phase, candidate stories, risk gates và
+  validation direction cho định hướng phát triển.
 
 ## Update Rule
 
